@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "userInterfaceStyle": "automatic",
+    "scheme": "virtualstudyassistant",
+    "web": {
+      "bundler": "metro"
+    }
+  }
+
+}
