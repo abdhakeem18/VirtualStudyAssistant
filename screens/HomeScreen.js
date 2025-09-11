@@ -6,6 +6,7 @@ import {
   ScrollView,
   TextInput,
   Button,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
@@ -14,6 +15,8 @@ import Card from "./components/common/Card";
 import MainLayout from "./components/layout/MainLayout";
 import { Picker } from "@react-native-picker/picker";
 import * as DocumentPicker from "expo-document-picker";
+import API from "../config/api";
+import { getData } from "./components/utils/storage";
 
 const HomeScreen = () => {
   const [AddMaterial, setAddMaterial] = useState(false);
@@ -21,16 +24,48 @@ const HomeScreen = () => {
   const [selectedGroup, setSelectedGroup] = useState("");
   const [showAddGroup, setShowAddGroup] = useState(false);
   const [newGroup, setNewGroup] = useState("");
-  const [cards, setCards] = useState(["Math", "Physics"]);
-  const [groups, setGroups] = useState(["Math", "Physics"]);
+  const [newTitle, setNewTitle] = useState("");
+  const [cards, setCards] = useState([]);
+  const [message, setMessage] = useState("");
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
   const pickDocument = async () => {
-    const result = await DocumentPicker.getDocumentAsync({ type: "*/*" });
+    const result = await DocumentPicker.getDocumentAsync({
+      type: "application/pdf",
+    });
     if (result.assets && result.assets.length > 0) {
       const picked = result.assets[0];
-      console.log("Picked file:", picked);
       setFileUploaded(picked);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const fetchDocuments = async () => {
+    try {
+      const user = await getData("user");
+      setMessage("");
+
+      const apiv = API("v1");
+      const response = await apiv.get("/document/get");
+      if (response.data.success) {
+        const uniqueGroups = Array.from(
+          new Set(response.data.documents.map((g) => g.group))
+        );
+        setGroups(uniqueGroups);
+        setCards(uniqueGroups);
+      } else {
+        setMessage({
+          error: response.data.message || "Password change failed.",
+        });
+      }
+    } catch (err) {
+      console.log('err => ', err);
+      setMessage({ error: err.message || "Network error. Please try again." });
     }
   };
 
@@ -51,17 +86,53 @@ const HomeScreen = () => {
     return mathImages[Math.floor(Math.random() * 7)];
   };
 
-  const saveMaterial = () => {
-    if (newGroup.trim()) {
-      setCards([...cards, newGroup.trim()]);
-      setNewGroup("");
+  const saveMaterial = async () => {
+    setMessage("");
+    setLoading(true);
+    if (!fileUploaded || !newTitle || !selectedGroup) {
+      setMessage({ error: "Please fill in all fields." });
+      setLoading(false);
+      return;
     }
-    setAddMaterial(false);
+
+    try {
+      const apiv = API("v1");
+      const formData = new FormData();
+
+      formData.append("title", newTitle);
+      formData.append("group", selectedGroup);
+      formData.append("file", {
+        uri: fileUploaded.uri,
+        name: fileUploaded.name,
+        type: fileUploaded.mimeType || "application/octet-stream",
+      });
+
+      const response = await apiv.post("/document/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data.success) {
+        setAddMaterial(false);
+        setFileUploaded(false);
+        setNewTitle("");
+        setSelectedGroup("");
+        setNewGroup("");
+        await fetchDocuments();
+        setMessage({ success: "Material generated successfully!" });
+      } else {
+        setMessage({ error: response.data.message || "Upload failed" });
+      }
+    } catch (err) {
+      console.log("Upload error:", err);
+      setMessage({ error: err.message || "Network error. Please try again." });
+    }
+    setLoading(false);
   };
 
-
   return (
-    <MainLayout goBack={false}>
+    <MainLayout goBack={false} message={message} setMessage={setMessage}>
       <View className="items-end w-100 px-4 my-3">
         <TouchableOpacity
           onPress={() => {
@@ -86,103 +157,167 @@ const HomeScreen = () => {
             className="space-y-4"
             style={{ flex: 1 }}
           >
-            {cards.map((card, i) => (
-              <TouchableOpacity key={i} onPress={() => navigation.push("MaterialDetails", { title: card })}>
-                <Card title={card} imageSource={getRandomImage(i)} />
-              </TouchableOpacity>
-            ))}
+            {cards.length > 0 ? (
+              <>
+                {cards.map((card, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() =>
+                      navigation.push("MaterialDetails", { title: card })
+                    }
+                  >
+                    <Card title={card} imageSource={getRandomImage(i)} />
+                  </TouchableOpacity>
+                ))}
+              </>
+            ) : (
+              <View className="flex items-center justify-center h-full mt-20">
+                <MaterialCommunityIcons
+                  name="book-education"
+                  size={300}
+                  color="#e6e6e6"
+                />
+                <Text className="text-gray-500 text-lg mt-4">
+                  lets add some materials!
+                </Text>
+              </View>
+            )}
           </ScrollView>
         </View>
       </View>
 
       <View
-        className={`absolute w-full h-full top-0 left-0 bg-transparent shadow-lg ${AddMaterial ? "" : "hidden"}`}
+        className={`absolute z-20 w-full h-full top-0 left-0 bg-transparent shadow-lg ${AddMaterial ? "" : "hidden"}`}
       >
-        <View className="bg-black opacity-80 w-full h-full"></View>
+        <View className=" bg-black opacity-80 w-full h-full"></View>
         <View className="flex items-center justify-center w-11/12 h-auto z-10 absolute bg-white m-5 top-1/4 px-2 py-10">
-          <TouchableOpacity
-            onPress={() => setAddMaterial(false)}
-            className="absolute top-4 right-4"
-          >
-            <MaterialCommunityIcons name="close" size={24} color="black" />
-          </TouchableOpacity>
-          <Text className="text-black font-bold mb-10 text-3xl w-full border-b-2 border-gray-200 pb-7 text-center">
-            New Material
-          </Text>
-
-          {/* File upload field */}
-          {!fileUploaded && (
-            <TouchableOpacity
-              className="bg-purple-900 px-4 py-2 rounded-md mb-4"
-              onPress={pickDocument}
-            >
-              <Text className="text-white">Upload Material</Text>
-            </TouchableOpacity>
-          )}
-
-          {fileUploaded && (
+          {loading ? (
+            <View className="absolute inset-0 h-full flex items-center justify-center bg-black bg-opacity-50 ">
+              <Text className="text-white">Generating your material...</Text>
+            </View>
+          ) : (
             <>
-              <View className="w-full items-center">
-                <Text className="mb-2 text-black">Select Material Group</Text>
-                <View className="bg-gray-100 rounded-md w-10/12 mb-2">
-                  <Picker
-                    selectedValue={selectedGroup}
-                    style={{ height: 55, width: "100%" }}
-                    onValueChange={(itemValue) => {
-                      if (itemValue === "add_new") {
-                        setShowAddGroup(true);
-                      } else {
-                        setSelectedGroup(itemValue);
-                        setShowAddGroup(false);
-                      }
-                    }}
-                  >
-                    <Picker.Item label="Select a group..." value="" />
-                    {groups.map((group, idx) => (
-                      <Picker.Item key={idx} label={group} value={group} />
-                    ))}
-                    <Picker.Item label="Add new...." value="add_new" />
-                  </Picker>
-                </View>
+              <TouchableOpacity
+                onPress={() => setAddMaterial(false)}
+                className="absolute top-4 right-4"
+              >
+                <MaterialCommunityIcons name="close" size={24} color="black" />
+              </TouchableOpacity>
+              <Text className="text-black font-bold mb-10 text-3xl w-full border-b-2 border-gray-200 pb-7 text-center">
+                New Material
+              </Text>
 
-                {showAddGroup && (
-                  <View className=" w-full items-center mb-2">
-                    <Text className="mb-1 text-black">New Group Name</Text>
-                    <View className=" w-full mb-2 flex-row justify-center">
-                      <TextInput
-                        className="border border-gray-300 rounded-md px-2 py-1 w-8/12 mb-2 h-12"
-                        value={newGroup}
-                        onChangeText={setNewGroup}
-                        placeholder="Enter group name"
+              {/* File upload field */}
+
+              <View className="flex flex-col items-center mb-4 bg-slate-200 pt-10 p-4 w-10/12">
+                <View className="w-50 h-50 absolute top-4 right-4">
+                  {fileUploaded && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setFileUploaded(false);
+                        setSelectedGroup("");
+                        setNewTitle("");
+                        setNewGroup("");
+                      }}
+                    >
+                      <MaterialCommunityIcons
+                        name="delete"
+                        size={24}
+                        color="red"
                       />
-                      <TouchableOpacity
-                        className="bg-purple-900 px-4 py-2 rounded-md w-2/12 items-center h-12"
-                        onPress={() => {
-                          if (newGroup.trim()) {
-                            setGroups([...groups, newGroup.trim()]);
-                            setSelectedGroup(newGroup.trim());
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <TouchableOpacity
+                  className="flex flex-col items-center mb-4 "
+                  onPress={pickDocument}
+                >
+                  <MaterialCommunityIcons
+                    name="file-document-outline"
+                    size={25}
+                    color="black"
+                  />
+                  <Text className="mb-2 text-black text-center">
+                    {fileUploaded ? fileUploaded.name : "No file uploaded"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {fileUploaded && (
+                <>
+                  <View className="w-full items-center">
+                    <Text className="mb-2 text-black">
+                      Select Material Title
+                    </Text>
+                    <View className=" rounded-md w-10/12 mb-2">
+                      <TextInput
+                        className="border border-gray-300 rounded-md px-2 py-1  mb-4 h-12"
+                        value={newTitle}
+                        onChangeText={setNewTitle}
+                        placeholder="Title"
+                      />
+                      <Picker
+                        selectedValue={selectedGroup}
+                        style={{
+                          height: 55,
+                          width: "100%",
+                          backgroundColor: "#f0f0f0",
+                        }}
+                        onValueChange={(itemValue) => {
+                          if (itemValue === "add_new") {
+                            setShowAddGroup(true);
+                          } else {
+                            setSelectedGroup(itemValue);
                             setShowAddGroup(false);
-                            
                           }
                         }}
                       >
-                        <MaterialCommunityIcons
-                          name="plus"
-                          size={24}
-                          color="white"
-                        />
-                      </TouchableOpacity>
+                        <Picker.Item label="Select a group..." value="" />
+                        {groups.map((group, idx) => (
+                          <Picker.Item key={idx} label={group} value={group} />
+                        ))}
+                        <Picker.Item label="Add new...." value="add_new" />
+                      </Picker>
                     </View>
-                  </View>
-                )}
-              </View>
 
-              <TouchableOpacity
-                className="bg-purple-900 px-4 py-2 w-4/12 rounded-md"
-                onPress={saveMaterial}
-              >
-                <Text className="text-white text-center">Save</Text>
-              </TouchableOpacity>
+                    {showAddGroup && (
+                      <View className=" w-full items-center mb-2">
+                        <Text className="mb-1 text-black">New Group Name</Text>
+                        <View className=" w-full mb-2 flex-row justify-center">
+                          <TextInput
+                            className="border border-gray-300 rounded-md px-2 py-1 w-8/12 mb-2 h-12"
+                            value={newGroup}
+                            onChangeText={setNewGroup}
+                            placeholder="Enter group name"
+                          />
+                          <TouchableOpacity
+                            className="bg-purple-900 px-4 py-2 rounded-md w-2/12 items-center h-12"
+                            onPress={() => {
+                              if (newGroup.trim()) {
+                                setGroups([...groups, newGroup.trim()]);
+                                setSelectedGroup(newGroup.trim());
+                                setShowAddGroup(false);
+                              }
+                            }}
+                          >
+                            <MaterialCommunityIcons
+                              name="plus"
+                              size={24}
+                              color="white"
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    className="bg-purple-900 px-4 py-2 w-4/12 rounded-md mt-3"
+                    onPress={saveMaterial}
+                  >
+                    <Text className="text-white text-center">Save</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </>
           )}
         </View>

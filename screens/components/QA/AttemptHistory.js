@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 
 export default function AttemptHistory({ history, onReview }) {
   return (
-    <View className="w-full pb-10">
+    <View className="w-full pb-32">
       <Text className="font-bold text-lg mb-2">Attempt History</Text>
       {history.slice().reverse().map((h, idx) => (
         <View key={idx} className="mb-4 p-3 bg-slate-100 rounded-md border border-slate-200">

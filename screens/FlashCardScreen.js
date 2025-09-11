@@ -1,48 +1,71 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import DraggableFlatList from 'react-native-draggable-flatlist';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState, useRef, useEffect } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import DraggableFlatList from "react-native-draggable-flatlist";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import MainLayout from "./components/layout/MainLayout";
-import Svg, { Line, Marker, Path } from 'react-native-svg';
+import Svg, { Line, Marker, Path } from "react-native-svg";
+import { getData } from "./components/utils/storage";
+import API from "../config/api";
 
-const dummyFlashcards = [
-  { id: '1', front: 'What is x?', back: 'x is a variable.' },
-  { id: '2', front: 'Solve for y: 2y+3=7', back: 'y=2' },
-  { id: '3', front: 'What is a variable?', back: 'A symbol for a number we don’t know yet.' },
-];
 
 export default function FlashCardScreen({ route, navigation }) {
-  const [data, setData] = useState(dummyFlashcards);
+  const docId = route?.params?.docId || 0;
+  const [flashcards, setFlashcards] = useState([]);
   const [showAnswer, setShowAnswer] = useState({}); // { [id]: true/false }
+  const [message, setMessage] = useState("");
 
   const handleToggleAnswer = (id) => {
     setShowAnswer((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  useEffect(() => {
+    const fetchSummary = async () => {
+      setMessage("");
+
+      try {
+        const apiv = API("v1");
+        const response = await apiv.get(`/flashcard/get/${docId}`);
+       if (response.data.success) {
+        console.log('response.data?.flashcards => ', response.data?.flashcards);
+          setFlashcards(response.data?.flashcards || []);
+        } else {
+          setMessage({
+            error: response.data.message || "Failed to fetch summary",
+          });
+        }
+      } catch (err) {
+        setMessage({ error: err.message || "Failed to fetch summary" });
+      }
+    };
+    fetchSummary();
+  }, [docId]);
+
   // For demo: fixed card height and spacing
   const CARD_HEIGHT = 64;
   const CARD_MARGIN = 12;
-  const svgHeight = data.length * (CARD_HEIGHT + CARD_MARGIN);
+  const svgHeight = flashcards.length * (CARD_HEIGHT + CARD_MARGIN);
 
   return (
     <MainLayout>
       <View className="flex-1 px-4 pb-14">
-        <Text className="font-bold text-lg text-slate-700 mb-4">Flash Cards</Text>
-        <View style={{ position: 'relative', flex: 1 }}>
+        <Text className="font-bold text-lg text-slate-700 mb-4">
+          Flash Cards
+        </Text>
+        <View style={{ position: "relative", flex: 1 }}>
           {/* SVG arrows between cards */}
           <Svg
             height={svgHeight}
             width="100%"
-            style={{ position: 'absolute', left: 0, top: CARD_HEIGHT / 2 }}
+            style={{ position: "absolute", left: 0, top: CARD_HEIGHT / 2 }}
             pointerEvents="none"
           >
-            {data.map((item, idx) => {
-              if (idx === data.length - 1) return null;
+            {flashcards.map((item, idx) => {
+              if (idx === flashcards.length - 1) return null;
               const y1 = idx * (CARD_HEIGHT + CARD_MARGIN);
               const y2 = (idx + 1) * (CARD_HEIGHT + CARD_MARGIN);
               return (
                 <Line
-                  key={item.id + '-arrow'}
+                  key={item.id + "-arrow"}
                   x1="50%"
                   y1={y1}
                   x2="50%"
@@ -66,36 +89,43 @@ export default function FlashCardScreen({ route, navigation }) {
             </Marker>
           </Svg>
           <DraggableFlatList
-            data={data}
-            onDragEnd={({ data }) => setData(data)}
-            keyExtractor={item => item.id}
+            data={flashcards}
+            onDragEnd={({ flashcards }) => setFlashcards(flashcards)}
+            keyExtractor={(item) => item.id}
             renderItem={({ item, drag, isActive, index }) => (
               <TouchableOpacity
                 style={{
-                  backgroundColor: isActive ? '#e9d5ff' : '#f3f4f6',
+                  backgroundColor: isActive ? "#e9d5ff" : "#f3f4f6",
                   padding: 16,
                   marginBottom: CARD_MARGIN,
                   borderRadius: 8,
-                  flexDirection: 'row',
-                  alignItems: 'center',
+                  flexDirection: "row",
+                  alignItems: "center",
                   height: CARD_HEIGHT,
                 }}
                 onLongPress={drag}
                 onPress={() => handleToggleAnswer(item.id)}
                 activeOpacity={0.8}
               >
-                <MaterialCommunityIcons name="drag" size={24} style={{ color: '#a21caf', marginRight: 12 }} />
+                <MaterialCommunityIcons
+                  name="drag"
+                  size={24}
+                  style={{ color: "#a21caf", marginRight: 12 }}
+                />
                 <View>
-                  <Text className="font-bold text-gray-800">{item.front}</Text>
+                  <Text className="font-bold text-gray-800">{item.question}</Text>
                   {showAnswer[item.id] && (
-                    <Text className="text-gray-600 mt-2">{item.back}</Text>
+                    <Text className="text-gray-600 mt-2">{item.answer}</Text>
                   )}
                 </View>
               </TouchableOpacity>
             )}
           />
         </View>
-        <Text className="text-xs text-gray-400 mt-4">(Tap a card to show/hide the answer. Drag and drop to rearrange. Arrows are for demo only.)</Text>
+        <Text className="text-xs text-gray-400 mt-4">
+          (Tap a card to show/hide the answer. Drag and drop to rearrange.
+          Arrows are for demo only.)
+        </Text>
       </View>
     </MainLayout>
   );

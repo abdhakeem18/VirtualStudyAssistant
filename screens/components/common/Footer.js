@@ -2,11 +2,10 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function Footer({ layout, logout, navigation }) {
-
   return (
     <>
       {!layout ? (
-        <View className="absolute bottom-0 left-0 right-0 bg-purple-900 p-4 shadow-lg">
+        <View className="absolute bottom-0 left-0 right-0 bg-purple-900 p-4 shadow-lg z-10">
           <View className="flex flex-row justify-between px-10">
             <TouchableOpacity
               className="items-center justify-center"

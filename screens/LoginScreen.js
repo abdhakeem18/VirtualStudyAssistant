@@ -1,12 +1,12 @@
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import Animated, {
   FadeIn,
   FadeInDown,
   FadeInUp,
   FadeOut,
 } from "react-native-reanimated";
-import { setData } from "./components/utils/storage";
+import { setData, getData } from "./components/utils/storage";
 import { useState } from "react";
 import API from "../config/api";
 import { useNavigation } from "@react-navigation/native";
@@ -15,39 +15,47 @@ import Button from "./components/common/Button";
 import EmailConfirmation from "./components/common/EmailConfirmation";
 
 export default function LoginScreen() {
+  
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState(null);
   const [authorizationUser, setAuthorizationUser] = useState(false);
-  const [success, setSuccess] = useState("");
 
   const signIn = async () => {
-    setError("");
-    
+    setMessage("");
+
     try {
       const apiv = API("v1");
       const response = await apiv.post("/auth/login", { email, password });
-
-      console.log("response => ", response.data);
       if (response?.data?.accessToken) {
-        
         await setData("user", response.data);
+        setMessage({success: "Login successful!"});
         if (response.data?.emailConfirmed) navigation.replace("Home");
         else setAuthorizationUser(true);
       } else {
-        setError(response.data.message || "Login failed");
+        setMessage({error: response.data.message || "Login failed"});
       }
     } catch (err) {
-      console.log("err => ", err);
       if (err?.error) {
-        setError(err?.message);
+        setMessage({error: err?.message});
       }
     }
   };
 
+  useEffect(() => {
+    const checkError = async () => {
+      const tokenError = await getData("tokenError");
+      if (tokenError) {
+        setMessage({ error: tokenError });
+        setData("tokenError", "");
+      }
+    };
+    checkError();
+  }, []);
+
   return (
-    <LoginLayout>
+    <LoginLayout message={message} setMessage={setMessage}>
       {authorizationUser ? (
         <View
           className="h-full w-full flex justify-center pt-40 pb-10"
@@ -75,12 +83,9 @@ export default function LoginScreen() {
           </Animated.View>
 
           <View className="flex items-center mx-4 space-y-4">
-            {error ? (
-              <Text className="text-red-700 mb-2 text-center">{error}</Text>
-            ) : null}
             <Animated.View
               entering={FadeInDown.duration(1000).springify()}
-              className="bg-black/5 p-5 rounded-2xl w-full mb-3"
+              className="bg-black/5 px-5 py-2 rounded-2xl w-full mb-3"
             >
               <TextInput
                 placeholder="Email"
@@ -94,7 +99,7 @@ export default function LoginScreen() {
 
             <Animated.View
               entering={FadeInDown.delay(200).duration(1000).springify()}
-              className="bg-black/5 p-5 rounded-2xl w-full mb-3"
+              className="bg-black/5 px-5 py-2 rounded-2xl w-full mb-3"
             >
               <TextInput
                 placeholder="Password"
@@ -125,12 +130,6 @@ export default function LoginScreen() {
                 name="SignUp"
                 callback={() => {
                   navigation.push("SignUp");
-                }}
-              />
-              <Button
-                name="Home"
-                callback={() => {
-                  navigation.push("Home");
                 }}
               />
             </Animated.View>
