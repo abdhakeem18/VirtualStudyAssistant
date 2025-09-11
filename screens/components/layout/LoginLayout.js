@@ -5,8 +5,9 @@ import Animated, { FadeIn } from "react-native-reanimated";
 import Footer from "../common/Footer";
 import { getData } from "../utils/storage";
 import { useNavigation } from "@react-navigation/native";
+import ToastPopup from "../common/toastPopup";
 
-export default function LoginLayout({ children }) {
+export default function LoginLayout({ children, message, setMessage }) {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -21,7 +22,6 @@ export default function LoginLayout({ children }) {
     };
     checkUser();
   }, []);
-
 
   return (
     <View className="bg-white h-full w-full relative">
@@ -40,10 +40,8 @@ export default function LoginLayout({ children }) {
 
           {children}
 
-          <Footer
-            layout="login"
-            navigation={navigation}
-          />
+          <Footer layout="login" navigation={navigation} />
+          <ToastPopup message={message} setMessage={setMessage} />
         </>
       )}
     </View>

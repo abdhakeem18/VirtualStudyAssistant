@@ -77,7 +77,7 @@ export default function SignupScreen() {
           ) : null}
           <Animated.View
             entering={FadeInDown.duration(1000).springify()}
-            className="bg-black/5 p-5 rounded-2xl w-full mb-3"
+            className="bg-black/5 py-2 px-5 rounded-2xl w-full mb-3"
           >
             <TextInput
               placeholder="Username"
@@ -88,7 +88,7 @@ export default function SignupScreen() {
           </Animated.View>
           <Animated.View
             entering={FadeInDown.delay(200).duration(1000).springify()}
-            className="bg-black/5 p-5 rounded-2xl w-full mb-3"
+            className="bg-black/5 py-2 px-5 rounded-2xl w-full mb-3"
           >
             <TextInput
               placeholder="Email"
@@ -101,7 +101,7 @@ export default function SignupScreen() {
           </Animated.View>
           <Animated.View
             entering={FadeInDown.delay(400).duration(1000).springify()}
-            className="bg-black/5 p-5 rounded-2xl w-full mb-3"
+            className="bg-black/5 py-2 px-5 rounded-2xl w-full mb-3"
           >
             <TextInput
               placeholder="Phone No"
@@ -113,7 +113,7 @@ export default function SignupScreen() {
           </Animated.View>
           <Animated.View
             entering={FadeInDown.delay(600).duration(1000).springify()}
-            className="bg-black/5 p-5 rounded-2xl w-full mb-3"
+            className="bg-black/5 py-2 px-5 rounded-2xl w-full mb-3"
           >
             <TextInput
               placeholder="Password"
@@ -125,7 +125,7 @@ export default function SignupScreen() {
           </Animated.View>
           <Animated.View
             entering={FadeInDown.delay(800).duration(1000).springify()}
-            className="bg-black/5 p-5 rounded-2xl w-full mb-3"
+            className="bg-black/5 py-2 px-5 rounded-2xl w-full mb-3"
           >
             <TextInput
               placeholder="Confirm Password"
@@ -159,7 +159,6 @@ export default function SignupScreen() {
             />
           </Animated.View>
         </View>
-        )
       </View>
     </LoginLayout>
   );

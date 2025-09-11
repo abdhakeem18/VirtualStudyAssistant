@@ -17,6 +17,9 @@ import ProfileScreen from "./screens/ProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
+// sk-f7ef0270cedd4bf49327724cb7a499a1
+
+
 function RootStack({ initialRoute }) {
   return (
     <Stack.Navigator

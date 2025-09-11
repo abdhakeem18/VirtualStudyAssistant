@@ -1,9 +1,11 @@
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getData, removeData, setData } from "../screens/components/utils/storage";
 
 const baseURLs = {
   v1: "http://192.168.10.60:3001/api/v1",
+  // v1: "http://10.135.18.54:3001/api/v1",
 }
+
 
 const API = (version) => {
   const APICALL = axios.create({
@@ -16,8 +18,7 @@ const API = (version) => {
   APICALL.interceptors.request.use(
     async (config) => {
       try {
-        const userStr = await AsyncStorage.getItem("user");
-        const user = userStr ? JSON.parse(userStr) : null;
+        const user = await getData("user");
         if (user && user.accessToken) {
           config.headers.Authorization = `Bearer ${user.accessToken}`;
         }
@@ -33,12 +34,14 @@ const API = (version) => {
     (response) => response,
     async (error) => {
       // // console.log("error", error);
-      if (error.response?.status === 401) {
-        
+      if (error.response?.data?.code === 401) {
+        console.log('API Error => ', error);
+        await setData("tokenError", "Access token expired");
+        await removeData("user");
         return Promise.reject(error.response?.data);
       }
 
-      if (error.response?.status !== 401) {
+      if (error.response?.data?.code !== 401) {
     
         return Promise.reject(error.response?.data);
       }
