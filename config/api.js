@@ -8,6 +8,7 @@ const baseURLs = {
 
 
 const API = (version) => {
+  // console.log('API Call => ', baseURLs[version]);
   const APICALL = axios.create({
     baseURL: baseURLs[version],
     headers: {

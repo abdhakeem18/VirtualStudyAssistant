@@ -6,11 +6,11 @@ export default function QuizControls({ onNext, isLast, selected, onFiftyFifty, f
     <View className="flex-row justify-between items-center mb-2">
       <Text className="text-xs text-gray-500">Time left: {timer}s</Text>
       <TouchableOpacity
-        className={`px-2 py-1 rounded-md ${fiftyUsed ? "bg-gray-300" : "bg-purple-400"}`}
+        className={`px-2 py-1 rounded-md ${fiftyUsed.status ? "bg-gray-300" : "bg-purple-400"}`}
         onPress={onFiftyFifty}
-        disabled={fiftyUsed}
       >
         <Text className="text-white text-xs">50/50</Text>
+        <Text className="text-white text-xs">({3 - fiftyUsed.attempts} left)</Text>
       </TouchableOpacity>
       {selected !== null && (
         <TouchableOpacity

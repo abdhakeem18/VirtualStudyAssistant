@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 
-export default function QuizQuestion({ question, options, selected, hiddenOptions, onSelect }) {
+export default function QuizQuestion({ question, options, selected, hiddenOptions, onSelect, lastCorrect }) {
   return (
     <View className="w-full">
       <Text className="mb-4 text-base font-semibold">{question}</Text>
@@ -11,7 +11,7 @@ export default function QuizQuestion({ question, options, selected, hiddenOption
             key={idx}
             className={`mb-2 px-4 py-3 rounded-md border ${
               selected === idx
-                ? idx === options.findIndex(o => o.correct)
+                ? idx === lastCorrect
                   ? "bg-green-200 border-green-500"
                   : "bg-red-200 border-red-500"
                 : "bg-gray-100 border-gray-300"

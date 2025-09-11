@@ -93,8 +93,7 @@ export default function DetailsScreen({ route }) {
                             className="flex-1 bg-purple-900 rounded-md px-3 py-2"
                             onPress={() =>
                               navigation.navigate("QAScreen", {
-                                qa: item.qa,
-                                fileName: item.name,
+                                docId: item.document_id,
                               })
                             }
                           >

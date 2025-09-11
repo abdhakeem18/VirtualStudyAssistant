@@ -42,8 +42,10 @@ const HomeScreen = () => {
   };
 
   useEffect(() => {
-    fetchDocuments();
-  }, []);
+    if (cards.length <= 0) {
+      fetchDocuments();
+    }
+  }, [cards]);
 
   const fetchDocuments = async () => {
     try {
@@ -64,8 +66,7 @@ const HomeScreen = () => {
         });
       }
     } catch (err) {
-      console.log('err => ', err);
-      setMessage({ error: err.message || "Network error. Please try again." });
+      setMessage({ error: err?.message || "Network error. Please try again." });
     }
   };
 
@@ -125,7 +126,6 @@ const HomeScreen = () => {
         setMessage({ error: response.data.message || "Upload failed" });
       }
     } catch (err) {
-      console.log("Upload error:", err);
       setMessage({ error: err.message || "Network error. Please try again." });
     }
     setLoading(false);
@@ -190,10 +190,14 @@ const HomeScreen = () => {
         className={`absolute z-20 w-full h-full top-0 left-0 bg-transparent shadow-lg ${AddMaterial ? "" : "hidden"}`}
       >
         <View className=" bg-black opacity-80 w-full h-full"></View>
-        <View className="flex items-center justify-center w-11/12 h-auto z-10 absolute bg-white m-5 top-1/4 px-2 py-10">
+        <View
+          className={`flex items-center justify-center w-11/12 h-auto z-10 absolute m-5 top-1/4 px-2 ${loading ? "py-1" : "py-10 bg-white"}`}
+        >
           {loading ? (
-            <View className="absolute inset-0 h-full flex items-center justify-center bg-black bg-opacity-50 ">
-              <Text className="text-white">Generating your material...</Text>
+            <View className="w-full h-full flex items-center justify-center bg-black opacity-85 py-8">
+              <Text className="text-white font-bold text-xl">
+                Generating your material...
+              </Text>
             </View>
           ) : (
             <>

@@ -7,7 +7,6 @@ import Svg, { Line, Marker, Path } from "react-native-svg";
 import { getData } from "./components/utils/storage";
 import API from "../config/api";
 
-
 export default function FlashCardScreen({ route, navigation }) {
   const docId = route?.params?.docId || 0;
   const [flashcards, setFlashcards] = useState([]);
@@ -25,8 +24,7 @@ export default function FlashCardScreen({ route, navigation }) {
       try {
         const apiv = API("v1");
         const response = await apiv.get(`/flashcard/get/${docId}`);
-       if (response.data.success) {
-        console.log('response.data?.flashcards => ', response.data?.flashcards);
+        if (response.data.success) {
           setFlashcards(response.data?.flashcards || []);
         } else {
           setMessage({
@@ -61,8 +59,8 @@ export default function FlashCardScreen({ route, navigation }) {
           >
             {flashcards.map((item, idx) => {
               if (idx === flashcards.length - 1) return null;
-              const y1 = idx * (CARD_HEIGHT + CARD_MARGIN);
-              const y2 = (idx + 1) * (CARD_HEIGHT + CARD_MARGIN);
+              const y1 = idx * (CARD_HEIGHT + CARD_MARGIN) - 10;
+              const y2 = (idx + 1) * (CARD_HEIGHT + CARD_MARGIN) - 28;
               return (
                 <Line
                   key={item.id + "-arrow"}
@@ -76,7 +74,7 @@ export default function FlashCardScreen({ route, navigation }) {
                 />
               );
             })}
-            <Marker
+            {/* <Marker
               id="arrowhead"
               markerWidth="10"
               markerHeight="10"
@@ -86,22 +84,22 @@ export default function FlashCardScreen({ route, navigation }) {
               markerUnits="strokeWidth"
             >
               <Path d="M 0 0 L 10 5 L 0 10 z" fill="#a21caf" />
-            </Marker>
+            </Marker> */}
           </Svg>
           <DraggableFlatList
             data={flashcards}
-            onDragEnd={({ flashcards }) => setFlashcards(flashcards)}
+            onDragEnd={({ data }) => setFlashcards(data)}
             keyExtractor={(item) => item.id}
             renderItem={({ item, drag, isActive, index }) => (
               <TouchableOpacity
+                className="py-4 px-1 bg-gray-100 mb-3 rounded-md min-w-[100%]"
                 style={{
                   backgroundColor: isActive ? "#e9d5ff" : "#f3f4f6",
-                  padding: 16,
                   marginBottom: CARD_MARGIN,
                   borderRadius: 8,
                   flexDirection: "row",
                   alignItems: "center",
-                  height: CARD_HEIGHT,
+                  height: "auto",
                 }}
                 onLongPress={drag}
                 onPress={() => handleToggleAnswer(item.id)}
@@ -113,7 +111,11 @@ export default function FlashCardScreen({ route, navigation }) {
                   style={{ color: "#a21caf", marginRight: 12 }}
                 />
                 <View>
-                  <Text className="font-bold text-gray-800">{item.question}</Text>
+                  <Text
+                    className={`${item.question.length > 55 ? "max-w-[95%]" : ""} pr-2 font-bold text-gray-800`}
+                  >
+                    {item.question}
+                  </Text>
                   {showAnswer[item.id] && (
                     <Text className="text-gray-600 mt-2">{item.answer}</Text>
                   )}
