@@ -5,7 +5,7 @@ export default function Footer({ layout, logout, navigation }) {
   return (
     <>
       {!layout ? (
-        <View className="absolute bottom-0 left-0 right-0 bg-purple-900 p-4 shadow-lg z-10">
+        <View className="absolute bottom-0 left-0 right-0 bg-purple-950 p-4 shadow-lg z-10">
           <View className="flex flex-row justify-between px-10">
             <TouchableOpacity
               className="items-center justify-center"
@@ -16,7 +16,7 @@ export default function Footer({ layout, logout, navigation }) {
               <MaterialCommunityIcons name="account" size={35} color="white" />
             </TouchableOpacity>
             <TouchableOpacity
-              className="items-center justify-center bg-purple-900 rounded-full flex p-5 absolute left-2/4 bottom-0 border-8 border-white shadow-2xl"
+              className="items-center justify-center bg-purple-950 rounded-full flex p-5 absolute left-2/4 bottom-0 border-8 border-white shadow-2xl"
               onPress={async () => {
                 navigation.navigate("Home");
               }}

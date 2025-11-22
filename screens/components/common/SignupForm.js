@@ -92,7 +92,7 @@ export default function SignupForm({ navigation }) {
             <TextInput placeholder="Confirm Password" placeholderTextColor={"gray"} secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
           </Animated.View>
           <Animated.View entering={FadeInDown.delay(1000).duration(1000).springify()} className="w-full">
-            <Button name={"SignUp"} callback={handleSignup} btnCls={"bg-purple-900 p-3 rounded-2xl mb-3"} textCls={"text-xl font-bold text-white text-center"}/>
+            <Button name={"SignUp"} callback={handleSignup} btnCls={"bg-purple-950 p-3 rounded-2xl mb-3"} textCls={"text-xl font-bold text-white text-center"}/>
           </Animated.View>
           <Animated.View entering={FadeInDown.delay(1200).duration(1000).springify()} className="flex-row justify-center">
             <Text>Already have an account? </Text>
@@ -112,7 +112,7 @@ export default function SignupForm({ navigation }) {
           <Button
             name={resendAvailable ? "Resend Confirmation Email" : "Resend available in 5 min"}
             callback={handleResendEmail}
-            btnCls={resendAvailable ? "bg-purple-900 p-3 rounded-2xl mb-3" : "bg-gray-400 p-3 rounded-2xl mb-3"}
+            btnCls={resendAvailable ? "bg-purple-950 p-3 rounded-2xl mb-3" : "bg-gray-400 p-3 rounded-2xl mb-3"}
             textCls={"text-base font-bold text-white text-center"}
             disabled={!resendAvailable}
           />

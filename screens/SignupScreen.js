@@ -14,19 +14,18 @@ export default function SignupScreen() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [message, setMessage] = useState(null);
+
 
   // Signup handler
   const handleSignup = async () => {
-    setError("");
-    setSuccess("");
+    setMessage(null);
     if (!username || !email || !phone || !password || !confirmPassword) {
-      setError("Please fill all fields.");
+      setMessage({ error: "Please fill all fields." });
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setMessage({ error: "Passwords do not match." });
       return;
     }
     try {
@@ -38,23 +37,25 @@ export default function SignupScreen() {
         password,
       });
 
-      if (response.data.success) {
-        setSuccess(
-          "Signup successful! Please check your email to confirm your account."
-        );
+      if (response.data.accessToken) {
+        setMessage({
+          success: "Signup successful! Please check your email to confirm your account.",
+        });
 
-        setTimeout(() => navigation.replace("login"), 3000);
+        setTimeout(() => navigation.replace("Login"), 3000);
       } else {
-        setError(response.data.message || "Signup failed");
+        setMessage({
+          error: response.data.message || "Signup failed",
+        });
       }
     } catch (err) {
       console.log("err => ", err);
-      setError(err?.message);
+      setMessage({ error: err?.message });
     }
   };
 
   return (
-    <LoginLayout>
+    <LoginLayout message={message} setMessage={setMessage}>
       <View
         className="h-full w-full flex justify-center pt-20"
         style={{ zIndex: 1 }}
@@ -69,12 +70,7 @@ export default function SignupScreen() {
           </Text>
         </Animated.View>
         <View className="flex items-center mx-4 space-y-4">
-          {error ? (
-            <Text className="text-red-500 mb-2 text-center">{error}</Text>
-          ) : null}
-          {success ? (
-            <Text className="text-green-500 mb-2 text-center">{success}</Text>
-          ) : null}
+         
           <Animated.View
             entering={FadeInDown.duration(1000).springify()}
             className="bg-black/5 py-2 px-5 rounded-2xl w-full mb-3"
@@ -142,7 +138,7 @@ export default function SignupScreen() {
             <Button
               name={"SignUp"}
               callback={handleSignup}
-              btnCls={"bg-purple-900 p-3 rounded-2xl mb-3"}
+              btnCls={"bg-purple-950 p-3 rounded-2xl mb-3"}
               textCls={"text-xl font-bold text-white text-center"}
             />
           </Animated.View>

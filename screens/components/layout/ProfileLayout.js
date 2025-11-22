@@ -3,10 +3,11 @@ import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import Animated, { FadeIn } from "react-native-reanimated";
 import Footer from "../common/Footer";
-import { getData } from "../utils/storage";
+import ToastPopup from "../common/toastPopup";
+import { getData, removeData } from "../../../utils/storage";
 import { useNavigation } from "@react-navigation/native";
 
-export default function LoginLayout({ children }) {
+export default function LoginLayout({ children, message, setMessage }) {
   const navigation = useNavigation();
 
   return (
@@ -22,7 +23,15 @@ export default function LoginLayout({ children }) {
 
       {children}
 
-      <Footer navigation={navigation} />
+      <Footer
+        navigation={navigation}
+        logout={async () => {
+          console.log("Logging out...");
+          await removeData("user");
+          navigation.navigate("Login");
+        }}
+      />
+      <ToastPopup message={message} setMessage={setMessage} />
     </View>
   );
 }

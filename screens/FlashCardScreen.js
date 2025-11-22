@@ -4,7 +4,7 @@ import DraggableFlatList from "react-native-draggable-flatlist";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import MainLayout from "./components/layout/MainLayout";
 import Svg, { Line, Marker, Path } from "react-native-svg";
-import { getData } from "./components/utils/storage";
+import { getData } from "../utils/storage";
 import API from "../config/api";
 
 export default function FlashCardScreen({ route, navigation }) {

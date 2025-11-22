@@ -33,7 +33,7 @@ export default function Header({ goBack, user, navigation }) {
       </Text>
       <View className="avatar avatar-placeholder">
         
-        <View className="mx-5 rounded-3xl w-12 h-12 bg-purple-900">
+        <View className="mx-5 rounded-3xl w-12 h-12 bg-purple-950">
           <Text className="text-white text-3xl font-bold text-center py-1">
             {user?.username?.charAt(0)}
           </Text>

@@ -4,9 +4,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import Button from "./Button";
 import API from "../../../config/api";
-import { getData, updateDataField } from "../utils/storage";
+import { getData, updateDataField } from "../../../utils/storage";
 
-export default function EmailConfirmation({ success, error, onBack }) {
+export default function EmailConfirmation({ message, setMessage }) {
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState("");
   const [otpSuccess, setOtpSuccess] = useState("");
@@ -16,20 +16,21 @@ export default function EmailConfirmation({ success, error, onBack }) {
   const [timer, setTimer] = useState(60);
 
   const handleVerify = async () => {
-    setOtpError("");
-    setOtpSuccess("");
- 
+    setMessage("");
+
     if (!otp) {
-      setOtpError("Please enter the OTP.");
+      setMessage({ error: "Please enter the OTP." });
       return;
     }
     const result = await onVerifyOtp(otp);
     if (result?.success) {
-      setOtpSuccess("Email verified!");
+      setMessage({ success: "Email verified!" });
       await updateDataField("user", "emailConfirmed", 1);
-      navigation.push("Home");
+      setTimeout(() => {
+        navigation.push("Home");
+      }, 2000);
     } else {
-      setOtpError(result?.message || "Invalid OTP");
+      setMessage({ error: result?.message || "Invalid OTP" });
     }
   };
 
@@ -43,8 +44,7 @@ export default function EmailConfirmation({ success, error, onBack }) {
       });
       return response.data;
     } catch (error) {
-      console.error("Error verifying OTP:", error);
-      return { success: false, message: error.message };
+      setMessage({ error: error?.message });
     }
   };
 
@@ -68,8 +68,7 @@ export default function EmailConfirmation({ success, error, onBack }) {
   }, [resendAvailable]);
 
   const handleResendEmail = async () => {
-    setOtpError("");
-    setOtpSuccess("");
+    setMessage("");
     if (resendAvailable) {
       try {
         const apiv = API("v1");
@@ -78,13 +77,17 @@ export default function EmailConfirmation({ success, error, onBack }) {
           email: userData?.email,
         });
         if (response.data.success) {
-          setOtpSuccess("Confirmation email resent. Please check your inbox.");
+          setMessage({
+            success: "Confirmation email resent. Please check your inbox.",
+          });
           setResendAvailable(false);
         } else {
-          setOtpError(response.data.message || "Could not resend email");
+          setMessage({
+            error: response.data.message || "Could not resend email",
+          });
         }
       } catch (err) {
-        setOtpError(err?.message);
+        setMessage({ error: err?.message });
       }
     }
   };
@@ -113,23 +116,11 @@ export default function EmailConfirmation({ success, error, onBack }) {
           className="bg-black/5 p-5 rounded-2xl w-full mb-3 text-center"
           maxLength={6}
         />
-        {otpError ? (
-          <Text className="text-red-500 mb-2 text-center">{otpError}</Text>
-        ) : null}
-        {otpSuccess ? (
-          <Text className="text-green-500 mb-2 text-center">{otpSuccess}</Text>
-        ) : null}
-        {error ? (
-          <Text className="text-red-500 mb-2 text-center">{error}</Text>
-        ) : null}
-        {success ? (
-          <Text className="text-green-500 mb-2 text-center">{success}</Text>
-        ) : null}
         <View className="flex items-center w-full">
           <Button
             name="Verify OTP"
             callback={handleVerify}
-            btnCls="bg-purple-900 p-3 rounded-2xl mb-3"
+            btnCls="bg-purple-950 p-3 rounded-2xl mb-3"
             textCls="text-xl font-bold text-white text-center"
           />
 

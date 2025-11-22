@@ -18,6 +18,8 @@ import QuizResult from "./components/QA/QuizResult";
 import ReviewAnswers from "./components/QA/ReviewAnswers";
 import BestScoreGraph from "./components/QA/BestScoreGraph";
 import AttemptHistory from "./components/QA/AttemptHistory";
+import QuizPDFExport from "./components/QA/QuizPDFExport";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../config/api";
 
 export default function QAScreen({ route, navigation }) {
@@ -45,6 +47,7 @@ export default function QAScreen({ route, navigation }) {
   const [quizStarted, setQuizStarted] = useState(false);
   const [message, setMessage] = useState("");
   const [recordID, setRecordID] = useState(null);
+  const [showPDFExport, setShowPDFExport] = useState(false);
   const docId = route.params?.docId || 0;
 
   useEffect(() => {
@@ -84,8 +87,15 @@ export default function QAScreen({ route, navigation }) {
       const apiv = API("v1");
       const response = await apiv.get(`/attempts/get/${docId}`);
       if (response.data.success) {
-        setRecordID(response.data?.history?.id || null);
-        setHistory(JSON.parse(response.data?.history?.quizHistory) || []);
+        const history = response.data?.history;
+        setRecordID(history?.id || null);
+        setHistory(
+          history?.quizHistory
+            ? typeof history?.quizHistory === "object"
+              ? history?.quizHistory
+              : JSON.parse(history?.quizHistory)
+            : []
+        );
       }
     } catch (err) {
       setMessage({ error: err.message || "Failed to fetch history" });
@@ -120,11 +130,17 @@ export default function QAScreen({ route, navigation }) {
   };
 
   useEffect(() => {
-    if (timer === 0 && !showResult && !reviewMode) {
+    if (
+      timer === 0 &&
+      !showResult &&
+      !reviewMode &&
+      selected === null &&
+      quizStarted
+    ) {
       handleSelect(null, true);
-      setTimeout(() => handleNext(), 1000);
+      setTimeout(() => handleNext(), 1500);
     }
-  }, [timer]);
+  }, [timer, showResult, reviewMode, selected, quizStarted]);
 
   const triggerFeedback = (isCorrect, correctIdx) => {
     setLastCorrect({ answer: correctIdx, correct: isCorrect });
@@ -144,13 +160,17 @@ export default function QAScreen({ route, navigation }) {
       return;
     }
 
+    // Find the correct answer index in the shuffled options array
     const correctIdx = qaList[current].options.findIndex(
-      (o, i) => parseInt(o.position) === parseInt(qaList[current].answer)
+      (option) => parseInt(option.position) === parseInt(qaList[current].answer)
     );
 
+    // Get indices of wrong answers
     let wrongs = qaList[current].options
-      .map((o, i) => i)
-      .filter((i) => parseInt(i) !== correctIdx);
+      .map((option, index) => index)
+      .filter((index) => index !== correctIdx);
+
+    // Randomly select 2 wrong answers to hide
     wrongs = shuffleArray(wrongs).slice(0, 2);
     setHiddenOptions(wrongs);
     setFiftyUsed({ status: true, attempts: (fiftyUsed?.attempts || 0) + 1 });
@@ -160,13 +180,16 @@ export default function QAScreen({ route, navigation }) {
   const handleSelect = (idx, auto = false) => {
     if (selected !== null) return;
     setSelected(idx);
+
+    // Find the correct answer index in the shuffled options array
     const correctIdx = qaList[current].options.findIndex(
-      (o, i) => parseInt(o.position) === parseInt(qaList[current].answer)
+      (option) => parseInt(option.position) === parseInt(qaList[current].answer)
     );
 
     const isCorrect = idx === correctIdx;
     triggerFeedback(isCorrect, correctIdx);
     setShowExplanation(true);
+
     if (isCorrect) {
       setScore((s) => s + 1);
       setStreak((prev) => {
@@ -177,18 +200,20 @@ export default function QAScreen({ route, navigation }) {
     } else {
       setStreak(0);
     }
+
     // Save for review
     setReviewAnswers((arr) => [
       ...arr,
       {
         question: qaList[current].question,
         options: qaList[current].options,
-        answer: correctIdx,
-        selected: idx,
+        answer: correctIdx, // Store the correct option index
+        selected: idx, // Store the selected option index
         correct: isCorrect,
         explanations: qaList[current].options.map((o) => o.explanation),
       },
     ]);
+
     timerRef.current && clearInterval(timerRef.current);
   };
 
@@ -211,42 +236,20 @@ export default function QAScreen({ route, navigation }) {
         1000
       );
     } else {
+      // Quiz completed - calculate final score
       setShowResult(true);
       timerRef.current && clearInterval(timerRef.current);
+
+      // Calculate final score as percentage
+      const finalScore = Math.round((score / qaList.length) * 100);
+
       const newHistory = [
         ...history,
         {
-          score: Math.round(
-            ((score +
-              (selected !== null &&
-              qaList[current].options.findIndex(
-                (o, i) =>
-                  o.text ===
-                  qaList[current].options[qaList[current].answer].text
-              ) === selected
-                ? 1
-                : 0)) /
-              qaList.length) *
-              100
-          ),
+          score: finalScore,
           date: new Date().toISOString(),
           streak: maxStreak,
-          reviewAnswers: reviewAnswers.concat([
-            {
-              question: qaList[current].question,
-              options: qaList[current].options,
-              answer: qaList[current].answer,
-              selected,
-              correct:
-                selected !== null &&
-                qaList[current].options.findIndex(
-                  (o, i) =>
-                    o.text ===
-                    qaList[current].options[qaList[current].answer].text
-                ) === selected,
-              explanations: qaList[current].options.map((o) => o.explanation),
-            },
-          ]),
+          reviewAnswers: [...reviewAnswers], // Use existing reviewAnswers array
         },
       ];
       setHistory(newHistory);
@@ -321,25 +324,38 @@ export default function QAScreen({ route, navigation }) {
                 <Text className="font-bold text-lg text-slate-700 mb-4">
                   Q&A Exam
                 </Text>
-                <TouchableOpacity
-                  className="bg-purple-900 px-6 py-3 rounded-md mt-6 w-2/6"
-                  onPress={() => {
-                    Alert.alert(
-                      "Start Quiz",
-                      "Are you sure you want to start a new quiz attempt?",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Start",
-                          style: "default",
-                          onPress: handleStartQuiz,
-                        },
-                      ]
-                    );
-                  }}
-                >
-                  <Text className="text-white text-lg">Start Quiz</Text>
-                </TouchableOpacity>
+                <View className="flex-row gap-2">
+                  <TouchableOpacity
+                    className="bg-blue-950 px-4 py-3 rounded-md mt-6 flex-row items-center"
+                    onPress={() => setShowPDFExport(true)}
+                  >
+                    <MaterialCommunityIcons
+                      name="file-pdf-box"
+                      size={20}
+                      color="white"
+                    />
+                    <Text className="text-white text-sm ml-2">Export PDF</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="bg-purple-950 px-6 py-3 rounded-md mt-6"
+                    onPress={() => {
+                      Alert.alert(
+                        "Start Quiz",
+                        "Are you sure you want to start a new quiz attempt?",
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          {
+                            text: "Start",
+                            style: "default",
+                            onPress: handleStartQuiz,
+                          },
+                        ]
+                      );
+                    }}
+                  >
+                    <Text className="text-white text-lg">Start Quiz</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               <BestScoreGraph history={history} />
               <AttemptHistory
@@ -427,6 +443,14 @@ export default function QAScreen({ route, navigation }) {
           )}
         </>
       )}
+
+      {/* PDF Export Modal */}
+      <QuizPDFExport
+        docId={docId}
+        visible={showPDFExport}
+        onClose={() => setShowPDFExport(false)}
+        setMessage={setMessage}
+      />
     </MainLayout>
   );
 }

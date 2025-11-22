@@ -12,7 +12,9 @@ import FlashCardScreen from "./screens/FlashCardScreen";
 import QA from "./screens/components/common/QA";
 import QAScreen from "./screens/QAScreen";
 import EmailConfirmation from "./screens/components/common/EmailConfirmation";
-import {getData} from "./screens/components/utils/storage";
+import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
+import ResetPasswordScreen from "./screens/ResetPasswordScreen";
+import {getData} from "./utils/storage";
 import ProfileScreen from "./screens/ProfileScreen";
 
 const Stack = createNativeStackNavigator();
@@ -28,6 +30,8 @@ function RootStack({ initialRoute }) {
     >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SignUp" component={SignupScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="MaterialDetails" component={DetailsScreen} />
       <Stack.Screen name="FlashCard" component={FlashCardScreen} />

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import Header from "../common/Header";
 import Footer from "../common/Footer";
-import { getData, removeData } from "../utils/storage";
+import { getData, removeData } from "../../../utils/storage";
 import { useNavigation } from "@react-navigation/native";
 import ToastPopup from "../common/toastPopup";
 

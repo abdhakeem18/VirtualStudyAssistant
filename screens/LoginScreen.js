@@ -6,7 +6,7 @@ import Animated, {
   FadeInUp,
   FadeOut,
 } from "react-native-reanimated";
-import { setData, getData } from "./components/utils/storage";
+import { setData, getData } from "../utils/storage";
 import { useState } from "react";
 import API from "../config/api";
 import { useNavigation } from "@react-navigation/native";
@@ -15,31 +15,36 @@ import Button from "./components/common/Button";
 import EmailConfirmation from "./components/common/EmailConfirmation";
 
 export default function LoginScreen() {
-  
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState(null);
   const [authorizationUser, setAuthorizationUser] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
 
   const signIn = async () => {
     setMessage("");
+    setLoginLoading(true);
 
     try {
       const apiv = API("v1");
       const response = await apiv.post("/auth/login", { email, password });
       if (response?.data?.accessToken) {
         await setData("user", response.data);
-        setMessage({success: "Login successful!"});
-        if (response.data?.emailConfirmed) navigation.replace("Home");
-        else setAuthorizationUser(true);
+        setMessage({ success: "Login successful!" });
+        setTimeout(() => {
+          if (response.data?.emailConfirmed) navigation.replace("Home");
+          else setAuthorizationUser(true);
+        }, 800);
       } else {
-        setMessage({error: response.data.message || "Login failed"});
+        setMessage({ error: response.data.message || "Login failed" });
       }
     } catch (err) {
       if (err?.error) {
-        setMessage({error: err?.message});
+        setMessage({ error: err?.message });
       }
+    } finally {
+      setLoginLoading(false);
     }
   };
 
@@ -62,8 +67,8 @@ export default function LoginScreen() {
           style={{ zIndex: 1 }}
         >
           <EmailConfirmation
-            success={success}
-            error={error}
+            message={message}
+            setMessage={setMessage}
             onBack={() => navigation.replace("Login")}
           />
         </View>
@@ -109,6 +114,21 @@ export default function LoginScreen() {
                 onChangeText={setPassword}
               />
             </Animated.View>
+
+            <Animated.View
+              entering={FadeInDown.delay(300).duration(1000).springify()}
+              className="w-full mb-3"
+            >
+              <TouchableOpacity
+                onPress={() => navigation.push("ForgotPassword")}
+                className="self-end"
+              >
+                <Text className="text-purple-950 font-semibold">
+                  Forgot Password?
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+
             <Animated.View
               entering={FadeInDown.delay(400).duration(1000).springify()}
               className="w-full"
@@ -116,7 +136,8 @@ export default function LoginScreen() {
               <Button
                 name={"Login"}
                 callback={signIn}
-                btnCls={"bg-purple-900 p-3 rounded-2xl mb-3"}
+                loading={loginLoading}
+                btnCls={"bg-purple-950 p-3 rounded-2xl mb-3"}
                 textCls={"text-xl font-bold text-white text-center"}
               />
             </Animated.View>

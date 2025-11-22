@@ -18,7 +18,7 @@ export default function ReviewAnswers({ reviewAnswers, onBack }) {
           <Text className="text-xs">{ans.correct ? "Correct" : "Incorrect"}</Text>
         </View>
       ))}
-      <TouchableOpacity className="bg-purple-900 px-4 py-2 rounded-md mb-20" onPress={onBack}>
+      <TouchableOpacity className="bg-purple-950 px-4 py-2 rounded-md mb-20" onPress={onBack}>
         <Text className="text-white text-center">Back to Results</Text>
       </TouchableOpacity>
     </ScrollView>
