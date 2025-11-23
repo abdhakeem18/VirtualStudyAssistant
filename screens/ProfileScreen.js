@@ -134,14 +134,15 @@ export default function ProfileScreen() {
                   onValueChange={(value) =>
                     setProfile({ ...profile, birth: value })
                   }
-                  style={{ height: 50 }}
+                  style={{ height: 50, color: "#000" }}
                 >
-                  <Picker.Item label="Birth" value="" />
+                  <Picker.Item label="Birth" value="" color="#666" />
                   {years.map((year) => (
                     <Picker.Item
                       key={year}
                       label={year.toString()}
                       value={year.toString()}
+                      color="#000"
                     />
                   ))}
                 </Picker>
@@ -154,12 +155,12 @@ export default function ProfileScreen() {
                   onValueChange={(value) =>
                     setProfile({ ...profile, gender: value })
                   }
-                  style={{ height: 50 }}
+                  style={{ height: 50, color: "#000" }}
                 >
-                  <Picker.Item label="Gender" value="" />
-                  <Picker.Item label="Male" value="Male" />
-                  <Picker.Item label="Female" value="Female" />
-                  <Picker.Item label="Other" value="Other" />
+                  <Picker.Item label="Gender" value="" color="#666" />
+                  <Picker.Item label="Male" value="Male" color="#000" />
+                  <Picker.Item label="Female" value="Female" color="#000" />
+                  <Picker.Item label="Other" value="Other" color="#000" />
                 </Picker>
               </View>
             </View>

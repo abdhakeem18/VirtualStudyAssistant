@@ -421,6 +421,7 @@ const HomeScreen = () => {
                           height: 55,
                           width: "100%",
                           backgroundColor: "#f0f0f0",
+                          color: "#000",
                         }}
                         onValueChange={(itemValue) => {
                           if (itemValue === "add_new") {
@@ -431,11 +432,11 @@ const HomeScreen = () => {
                           }
                         }}
                       >
-                        <Picker.Item label="Select a group..." value="" />
+                        <Picker.Item label="Select a group..." value="" color="#666" />
                         {groups.map((group, idx) => (
-                          <Picker.Item key={idx} label={group} value={group} />
+                          <Picker.Item key={idx} label={group} value={group} color="#000" />
                         ))}
-                        <Picker.Item label="Add new...." value="add_new" />
+                        <Picker.Item label="Add new...." value="add_new" color="#000" />
                       </Picker>
                     </View>
 
