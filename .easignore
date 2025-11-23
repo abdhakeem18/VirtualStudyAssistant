@@ -1,0 +1,42 @@
+# Build directories
+android/app/build/
+android/build/
+android/.gradle/
+android/app/.cxx/
+
+# Node modules (will be reinstalled on build server)
+node_modules/
+
+# Cache directories
+.expo/
+.expo-shared/
+**/.expo/
+**/.expo-shared/
+
+# Test files
+__tests__/
+**/__tests__/
+*.test.js
+*.test.ts
+
+# Documentation
+docs/
+*.md
+README.md
+
+# Git
+.git/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db

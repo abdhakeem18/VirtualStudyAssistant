@@ -62,23 +62,23 @@ const HomeScreen = () => {
   }, []);
 
   // Timer effect for loading countdown
-  // useEffect(() => {
-  //   let interval;
-  //   if (loading) {
-  //     setWaitingTime(0);
-  //     interval = setInterval(() => {
-  //       setWaitingTime((prevTime) => prevTime + 1);
-  //     }, 1000);
-  //   } else {
-  //     setWaitingTime(0);
-  //   }
+  useEffect(() => {
+    let interval;
+    if (loading) {
+      setWaitingTime(0);
+      interval = setInterval(() => {
+        setWaitingTime((prevTime) => prevTime + 1);
+      }, 1000);
+    } else {
+      setWaitingTime(0);
+    }
 
-  //   return () => {
-  //     if (interval) {
-  //       clearInterval(interval);
-  //     }
-  //   };
-  // }, [loading]);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [loading]);
 
   const fetchDocuments = async () => {
     try {
@@ -361,7 +361,7 @@ const HomeScreen = () => {
               >
                 <MaterialCommunityIcons name="close" size={24} color="black" />
               </TouchableOpacity>
-              <Text className="text-black font-bold mb-10 text-3xl w-full border-b-2 border-gray-200 pb-7 text-center">
+              <Text className="bg-black/5 font-bold mb-10 text-3xl w-full border-b-2 border-gray-200 pb-7 text-center">
                 New Material
               </Text>
 
@@ -409,7 +409,7 @@ const HomeScreen = () => {
                     </Text>
                     <View className=" rounded-md w-10/12 mb-2">
                       <TextInput
-                        className="border border-gray-300 rounded-md px-2 py-1  mb-4 h-12"
+                        className="bg-black/5 border border-gray-300 rounded-md px-2 py-1  mb-4 h-12"
                         value={newTitle}
                         onChangeText={setNewTitle}
                         placeholder="Title"
@@ -443,7 +443,7 @@ const HomeScreen = () => {
                         <Text className="mb-1 text-black">New Group Name</Text>
                         <View className=" w-full mb-2 flex-row justify-center">
                           <TextInput
-                            className="border border-gray-300 rounded-md px-2 py-1 w-8/12 mb-2 h-12"
+                            className="bg-black/5 border border-gray-300 rounded-md px-2 py-1 w-8/12 mb-2 h-12"
                             value={newGroup}
                             onChangeText={setNewGroup}
                             placeholder="Enter group name"
@@ -503,7 +503,7 @@ const HomeScreen = () => {
               <MaterialCommunityIcons name="close" size={24} color="black" />
             </TouchableOpacity>
             
-            <Text className="text-black font-bold mb-6 text-xl text-center">
+            <Text className="bg-black/5 font-bold mb-6 text-xl text-center">
               Material Options
             </Text>
             <Text className="text-gray-600 mb-6 text-center">
@@ -547,14 +547,14 @@ const HomeScreen = () => {
               <MaterialCommunityIcons name="close" size={24} color="black" />
             </TouchableOpacity>
             
-            <Text className="text-black font-bold mb-6 text-xl text-center">
+            <Text className="bg-black/5 font-bold mb-6 text-xl text-center">
               Rename Material
             </Text>
 
             <View className="w-full mb-6">
               <Text className="mb-2 text-gray-600">New Name:</Text>
               <TextInput
-                className="border border-gray-300 rounded-md px-3 py-3 w-full"
+                className="bg-black/5 border border-gray-300 rounded-md px-3 py-3 w-full"
                 value={renameText}
                 onChangeText={setRenameText}
                 placeholder="Enter new name"

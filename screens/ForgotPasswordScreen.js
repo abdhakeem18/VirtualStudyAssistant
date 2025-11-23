@@ -83,6 +83,7 @@ export default function ForgotPasswordScreen({ navigation }) {
 
             <View className="bg-black/5 p-4 rounded-2xl w-full mb-3 flex-row items-center">
               <TextInput
+                className="bg-black/5"
                 placeholder="Enter your email"
                 placeholderTextColor={"gray"}
                 value={email}

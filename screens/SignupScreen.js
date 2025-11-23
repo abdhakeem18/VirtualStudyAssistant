@@ -16,7 +16,6 @@ export default function SignupScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState(null);
 
-
   // Signup handler
   const handleSignup = async () => {
     setMessage(null);
@@ -39,7 +38,8 @@ export default function SignupScreen() {
 
       if (response.data.accessToken) {
         setMessage({
-          success: "Signup successful! Please check your email to confirm your account.",
+          success:
+            "Signup successful! Please check your email to confirm your account.",
         });
 
         setTimeout(() => navigation.replace("Login"), 3000);
@@ -70,12 +70,12 @@ export default function SignupScreen() {
           </Text>
         </Animated.View>
         <View className="flex items-center mx-4 space-y-4">
-         
           <Animated.View
             entering={FadeInDown.duration(1000).springify()}
             className="bg-black/5 py-2 px-5 rounded-2xl w-full mb-3"
           >
             <TextInput
+              className="bg-black/5"
               placeholder="Username"
               placeholderTextColor={"gray"}
               value={username}
@@ -87,6 +87,7 @@ export default function SignupScreen() {
             className="bg-black/5 py-2 px-5 rounded-2xl w-full mb-3"
           >
             <TextInput
+              className="bg-black/5"
               placeholder="Email"
               placeholderTextColor={"gray"}
               value={email}
@@ -100,6 +101,7 @@ export default function SignupScreen() {
             className="bg-black/5 py-2 px-5 rounded-2xl w-full mb-3"
           >
             <TextInput
+              className="bg-black/5"
               placeholder="Phone No"
               placeholderTextColor={"gray"}
               value={phone}
@@ -112,6 +114,7 @@ export default function SignupScreen() {
             className="bg-black/5 py-2 px-5 rounded-2xl w-full mb-3"
           >
             <TextInput
+              className="bg-black/5"
               placeholder="Password"
               placeholderTextColor={"gray"}
               secureTextEntry
@@ -124,6 +127,7 @@ export default function SignupScreen() {
             className="bg-black/5 py-2 px-5 rounded-2xl w-full mb-3"
           >
             <TextInput
+              className="bg-black/5"
               placeholder="Confirm Password"
               placeholderTextColor={"gray"}
               secureTextEntry

@@ -63,7 +63,7 @@ export default function ChangePassword({ visible, onClose, setMessage }) {
                 secureTextEntry={!showCurrent}
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
-                className="flex-1 p-4"
+                className="bg-black/5 flex-1 p-4"
               />
               <TouchableOpacity onPress={() => setShowCurrent(!showCurrent)}>
                 <Text style={{ padding: 10 }}>
@@ -92,7 +92,7 @@ export default function ChangePassword({ visible, onClose, setMessage }) {
                 secureTextEntry={!showNew}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                className="flex-1 p-4"
+                className="bg-black/5 flex-1 p-4"
               />
               <TouchableOpacity onPress={() => setShowNew(!showNew)}>
                 <Text style={{ padding: 10 }}>
@@ -121,7 +121,7 @@ export default function ChangePassword({ visible, onClose, setMessage }) {
                 secureTextEntry={!showConfirm}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                className="flex-1 p-4"
+                className="bg-black/5 flex-1 p-4"
               />
               <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
                 <Text style={{ padding: 10 }}>
