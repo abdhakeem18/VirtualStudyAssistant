@@ -85,7 +85,6 @@ export default function SignupForm({ navigation }) {
             className="bg-black/5 p-5 rounded-2xl w-full mb-3"
           >
             <TextInput
-              className="bg-black/5"
               placeholder="Username"
               placeholderTextColor={"gray"}
               value={username}
@@ -97,7 +96,6 @@ export default function SignupForm({ navigation }) {
             className="bg-black/5 p-5 rounded-2xl w-full mb-3"
           >
             <TextInput
-              className="bg-black/5"
               placeholder="Email"
               placeholderTextColor={"gray"}
               value={email}
@@ -111,7 +109,6 @@ export default function SignupForm({ navigation }) {
             className="bg-black/5 p-5 rounded-2xl w-full mb-3"
           >
             <TextInput
-              className="bg-black/5"
               placeholder="Phone No"
               placeholderTextColor={"gray"}
               value={phone}
@@ -124,7 +121,6 @@ export default function SignupForm({ navigation }) {
             className="bg-black/5 p-5 rounded-2xl w-full mb-3"
           >
             <TextInput
-              className="bg-black/5"
               style={{color: '#000'}}
               placeholder="Password"
               placeholderTextColor={"gray"}
@@ -138,7 +134,6 @@ export default function SignupForm({ navigation }) {
             className="bg-black/5 p-5 rounded-2xl w-full mb-3"
           >
             <TextInput
-              className="bg-black/5"
               style={{color: '#000'}}
               placeholder="Confirm Password"
               placeholderTextColor={"gray"}
