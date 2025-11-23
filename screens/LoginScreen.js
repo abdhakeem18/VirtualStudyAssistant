@@ -109,6 +109,7 @@ export default function LoginScreen() {
             >
               <TextInput
                 className="bg-black/5"
+                style={{color: '#000'}}
                 placeholder="Password"
                 placeholderTextColor={"gray"}
                 secureTextEntry

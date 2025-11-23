@@ -115,6 +115,7 @@ export default function SignupScreen() {
           >
             <TextInput
               className="bg-black/5"
+              style={{color: '#000'}}
               placeholder="Password"
               placeholderTextColor={"gray"}
               secureTextEntry
@@ -128,6 +129,7 @@ export default function SignupScreen() {
           >
             <TextInput
               className="bg-black/5"
+              style={{color: '#000'}}
               placeholder="Confirm Password"
               placeholderTextColor={"gray"}
               secureTextEntry

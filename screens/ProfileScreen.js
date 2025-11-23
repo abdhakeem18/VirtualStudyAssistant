@@ -105,6 +105,7 @@ export default function ProfileScreen() {
                   setProfile({ ...profile, username: text })
                 }
                 placeholder="Username"
+                placeholderTextColor={"gray"}
                 className="bg-black/5 bg-gray-100 p-4 rounded-lg"
               />
               <TextInput
@@ -112,6 +113,7 @@ export default function ProfileScreen() {
                 editable={editing}
                 onChangeText={(text) => setProfile({ ...profile, email: text })}
                 placeholder="Email"
+                placeholderTextColor={"gray"}
                 keyboardType="email-address"
                 className="bg-black/5 bg-gray-100 p-4 rounded-lg"
               />
@@ -120,6 +122,7 @@ export default function ProfileScreen() {
                 editable={editing}
                 onChangeText={(text) => setProfile({ ...profile, phone: text })}
                 placeholder="Phone Number"
+                placeholderTextColor={"gray"}
                 keyboardType="phone-pad"
                 className="bg-black/5 bg-gray-100 p-4 rounded-lg"
               />

@@ -123,6 +123,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
                 <View className="bg-black/5 p-4 rounded-2xl w-full mb-3 flex-row items-center">
                   <TextInput
                     placeholder="Enter reset code"
+                    placeholderTextColor={"gray"}
                     className="bg-black/5 flex-1 "
                     value={resetCode}
                     onChangeText={(text) => {
@@ -167,6 +168,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
                   <TextInput
                     placeholder="New password"
                     className="bg-black/5 flex-1 "
+                    style={{color: '#000'}}
                     value={newPassword}
                     onChangeText={(text) => {
                       setNewPassword(text);
@@ -188,7 +190,8 @@ export default function ResetPasswordScreen({ navigation, route }) {
                 <View className="bg-black/5 p-4 rounded-2xl w-full mb-3 flex-row items-center">
                   <TextInput
                     placeholder="Confirm new password"
-                    className="bg-black/5 flex-1 "
+                    className="bg-black/5 flex-1"
+                    style={{color: '#000'}}
                     value={confirmPassword}
                     onChangeText={(text) => {
                       setConfirmPassword(text);

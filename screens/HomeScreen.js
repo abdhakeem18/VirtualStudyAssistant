@@ -413,6 +413,7 @@ const HomeScreen = () => {
                         value={newTitle}
                         onChangeText={setNewTitle}
                         placeholder="Title"
+                        placeholderTextColor={"gray"}
                       />
                       <Picker
                         selectedValue={selectedGroup}
@@ -447,6 +448,7 @@ const HomeScreen = () => {
                             value={newGroup}
                             onChangeText={setNewGroup}
                             placeholder="Enter group name"
+                            placeholderTextColor={"gray"}
                           />
                           <TouchableOpacity
                             className="bg-purple-950 px-4 py-2 rounded-md w-2/12 items-center h-12"
@@ -558,6 +560,7 @@ const HomeScreen = () => {
                 value={renameText}
                 onChangeText={setRenameText}
                 placeholder="Enter new name"
+                placeholderTextColor={"gray"}
                 autoFocus={true}
               />
             </View>

@@ -125,6 +125,7 @@ export default function SignupForm({ navigation }) {
           >
             <TextInput
               className="bg-black/5"
+              style={{color: '#000'}}
               placeholder="Password"
               placeholderTextColor={"gray"}
               secureTextEntry
@@ -138,6 +139,7 @@ export default function SignupForm({ navigation }) {
           >
             <TextInput
               className="bg-black/5"
+              style={{color: '#000'}}
               placeholder="Confirm Password"
               placeholderTextColor={"gray"}
               secureTextEntry

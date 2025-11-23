@@ -60,6 +60,8 @@ export default function ChangePassword({ visible, onClose, setMessage }) {
             <View className="flex-row items-center bg-gray-100 rounded-lg">
               <TextInput
                 placeholder="Current Password"
+                placeholderTextColor={"gray"}
+                style={{color: '#000'}}
                 secureTextEntry={!showCurrent}
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
@@ -89,6 +91,8 @@ export default function ChangePassword({ visible, onClose, setMessage }) {
             <View className="flex-row items-center bg-gray-100 rounded-lg">
               <TextInput
                 placeholder="New Password"
+                placeholderTextColor={"gray"}
+                style={{color: '#000'}}
                 secureTextEntry={!showNew}
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -118,6 +122,8 @@ export default function ChangePassword({ visible, onClose, setMessage }) {
             <View className="flex-row items-center bg-gray-100 rounded-lg">
               <TextInput
                 placeholder="Confirm New Password"
+                placeholderTextColor={"gray"}
+                style={{color: '#000'}}
                 secureTextEntry={!showConfirm}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
