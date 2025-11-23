@@ -106,7 +106,7 @@ export default function ProfileScreen() {
                 }
                 placeholder="Username"
                 placeholderTextColor={"gray"}
-                className="bg-black/5 bg-gray-100 p-4 rounded-lg"
+                className="bg-gray-100 p-4 rounded-lg"
               />
               <TextInput
                 value={profile?.email}
@@ -115,7 +115,7 @@ export default function ProfileScreen() {
                 placeholder="Email"
                 placeholderTextColor={"gray"}
                 keyboardType="email-address"
-                className="bg-black/5 bg-gray-100 p-4 rounded-lg"
+                className="bg-gray-100 p-4 rounded-lg"
               />
               <TextInput
                 value={profile?.phone}
@@ -124,7 +124,7 @@ export default function ProfileScreen() {
                 placeholder="Phone Number"
                 placeholderTextColor={"gray"}
                 keyboardType="phone-pad"
-                className="bg-black/5 bg-gray-100 p-4 rounded-lg"
+                className="bg-gray-100 p-4 rounded-lg"
               />
               {/* Birth Picker */}
               <View className="bg-gray-100 rounded-lg">
