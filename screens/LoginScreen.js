@@ -93,6 +93,7 @@ export default function LoginScreen() {
               className="bg-black/5 px-5 py-2 rounded-2xl w-full mb-3"
             >
               <TextInput
+                className="bg-black/5"
                 placeholder="Email"
                 placeholderTextColor={"gray"}
                 value={email}
@@ -107,6 +108,8 @@ export default function LoginScreen() {
               className="bg-black/5 px-5 py-2 rounded-2xl w-full mb-3"
             >
               <TextInput
+                className="bg-black/5"
+                style={{color: '#000'}}
                 placeholder="Password"
                 placeholderTextColor={"gray"}
                 secureTextEntry

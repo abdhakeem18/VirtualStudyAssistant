@@ -60,10 +60,12 @@ export default function ChangePassword({ visible, onClose, setMessage }) {
             <View className="flex-row items-center bg-gray-100 rounded-lg">
               <TextInput
                 placeholder="Current Password"
+                placeholderTextColor={"gray"}
+                style={{color: '#000'}}
                 secureTextEntry={!showCurrent}
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
-                className="flex-1 p-4"
+                className="bg-black/5 flex-1 p-4"
               />
               <TouchableOpacity onPress={() => setShowCurrent(!showCurrent)}>
                 <Text style={{ padding: 10 }}>
@@ -89,10 +91,12 @@ export default function ChangePassword({ visible, onClose, setMessage }) {
             <View className="flex-row items-center bg-gray-100 rounded-lg">
               <TextInput
                 placeholder="New Password"
+                placeholderTextColor={"gray"}
+                style={{color: '#000'}}
                 secureTextEntry={!showNew}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                className="flex-1 p-4"
+                className="bg-black/5 flex-1 p-4"
               />
               <TouchableOpacity onPress={() => setShowNew(!showNew)}>
                 <Text style={{ padding: 10 }}>
@@ -118,10 +122,12 @@ export default function ChangePassword({ visible, onClose, setMessage }) {
             <View className="flex-row items-center bg-gray-100 rounded-lg">
               <TextInput
                 placeholder="Confirm New Password"
+                placeholderTextColor={"gray"}
+                style={{color: '#000'}}
                 secureTextEntry={!showConfirm}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                className="flex-1 p-4"
+                className="bg-black/5 flex-1 p-4"
               />
               <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
                 <Text style={{ padding: 10 }}>

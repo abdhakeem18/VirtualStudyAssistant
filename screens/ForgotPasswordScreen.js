@@ -83,6 +83,7 @@ export default function ForgotPasswordScreen({ navigation }) {
 
             <View className="bg-black/5 p-4 rounded-2xl w-full mb-3 flex-row items-center">
               <TextInput
+                className="bg-black/5"
                 placeholder="Enter your email"
                 placeholderTextColor={"gray"}
                 value={email}
@@ -111,7 +112,7 @@ export default function ForgotPasswordScreen({ navigation }) {
             </TouchableOpacity>
 
             <View className="flex-row justify-center items-center">
-              <Text className="text-white">Remember your password? </Text>
+              <Text className="text-black">Remember your password? </Text>
               <TouchableOpacity onPress={() => navigation.navigate("Login")}>
                 <Text className="text-purple-800 font-semibold">
                   Back to Login

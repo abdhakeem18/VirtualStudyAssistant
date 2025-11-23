@@ -98,29 +98,33 @@ export default function ProfileScreen() {
             </Text>
             <View className="space-y-3">
               <TextInput
+              
                 value={profile?.username}
                 editable={editing}
                 onChangeText={(text) =>
                   setProfile({ ...profile, username: text })
                 }
                 placeholder="Username"
-                className="bg-gray-100 p-4 rounded-lg"
+                placeholderTextColor={"gray"}
+                className="bg-black/5 bg-gray-100 p-4 rounded-lg"
               />
               <TextInput
                 value={profile?.email}
                 editable={editing}
                 onChangeText={(text) => setProfile({ ...profile, email: text })}
                 placeholder="Email"
+                placeholderTextColor={"gray"}
                 keyboardType="email-address"
-                className="bg-gray-100 p-4 rounded-lg"
+                className="bg-black/5 bg-gray-100 p-4 rounded-lg"
               />
               <TextInput
                 value={profile?.phone}
                 editable={editing}
                 onChangeText={(text) => setProfile({ ...profile, phone: text })}
                 placeholder="Phone Number"
+                placeholderTextColor={"gray"}
                 keyboardType="phone-pad"
-                className="bg-gray-100 p-4 rounded-lg"
+                className="bg-black/5 bg-gray-100 p-4 rounded-lg"
               />
               {/* Birth Picker */}
               <View className="bg-gray-100 rounded-lg">
