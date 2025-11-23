@@ -1,13 +1,14 @@
 import axios from "axios";
-import { getData, removeData, setData } from "../screens/components/utils/storage";
+import { getData, removeData, setData } from "../utils/storage";
 
 const baseURLs = {
-  v1: "http://192.168.10.60:3001/api/v1",
+  v1: "http://172.20.10.2:3001/api/v1",
   // v1: "http://10.135.18.54:3001/api/v1",
 }
 
 
 const API = (version) => {
+  // console.log('API Call => ', baseURLs[version]);
   const APICALL = axios.create({
     baseURL: baseURLs[version],
     headers: {
@@ -33,9 +34,7 @@ const API = (version) => {
   APICALL.interceptors.response.use(
     (response) => response,
     async (error) => {
-      // // console.log("error", error);
       if (error.response?.data?.code === 401) {
-        console.log('API Error => ', error);
         await setData("tokenError", "Access token expired");
         await removeData("user");
         return Promise.reject(error.response?.data);

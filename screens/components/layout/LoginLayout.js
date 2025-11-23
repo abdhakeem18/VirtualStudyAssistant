@@ -3,14 +3,13 @@ import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import Animated, { FadeIn } from "react-native-reanimated";
 import Footer from "../common/Footer";
-import { getData } from "../utils/storage";
+import { getData } from "../../../utils/storage";
 import { useNavigation } from "@react-navigation/native";
 import ToastPopup from "../common/toastPopup";
 
 export default function LoginLayout({ children, message, setMessage }) {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     const checkUser = async () => {
       const userData = await getData("user");

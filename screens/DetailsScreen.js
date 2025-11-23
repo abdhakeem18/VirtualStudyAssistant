@@ -1,16 +1,23 @@
-import { View, Text, TouchableOpacity, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  ScrollView,
+  Modal,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import MainLayout from "./components/layout/MainLayout";
 import { useNavigation } from "@react-navigation/native";
 import Summary from "./components/common/Summary";
-import { getData, setData } from "./components/utils/storage";
+import { getData, setData } from "../utils/storage";
 import API from "../config/api";
 
 export default function DetailsScreen({ route }) {
   const navigation = useNavigation();
   const { title } = route.params || {};
   const [expandedFileId, setExpandedFileId] = useState(null);
-  const [dropdownStep, setDropdownStep] = useState("summary"); // 'summary', 'flashcard', 'qa'
+  const [dropdownStep, setDropdownStep] = useState("summary");
   const [summary, setSummary] = useState(null);
   const [message, setMessage] = useState("");
 
@@ -24,7 +31,8 @@ export default function DetailsScreen({ route }) {
         let sum = [];
         if (response.data.success) {
           response.data.documents.forEach((doc) => {
-            const summaries = doc.summaries ? JSON.parse(doc.summaries) : {};
+            const summaries = doc.summaries ?  typeof doc.summaries === 'object'
+            ? doc.summaries : JSON.parse(doc.summaries) : {};
             sum.push(summaries);
           });
 
@@ -72,40 +80,29 @@ export default function DetailsScreen({ route }) {
                   </Text>
                 </TouchableOpacity>
                 {expandedFileId === item.id && (
-                  <View className="bg-white border border-gray-200 rounded-md mt-2 p-3">
-                    {dropdownStep === "summary" && (
-                      <>
-                        <Summary summary={item.summary} />
-                        <View className="flex flex-row space-x-2 mb-2">
-                          <TouchableOpacity
-                            className="flex-1 bg-purple-900 rounded-md px-3 py-2 mr-2"
-                            onPress={() =>
-                              navigation.navigate("FlashCard", {
-                                docId: item.document_id,
-                              })
-                            }
-                          >
-                            <Text className="text-white text-center">
-                              See Flash Card
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            className="flex-1 bg-purple-900 rounded-md px-3 py-2"
-                            onPress={() =>
-                              navigation.navigate("QAScreen", {
-                                qa: item.qa,
-                                fileName: item.name,
-                              })
-                            }
-                          >
-                            <Text className="text-white text-center">
-                              See Q&A
-                            </Text>
-                          </TouchableOpacity>
+                  <Modal
+                    visible={expandedFileId === item.id}
+                    animationType="slide"
+                    transparent={true}
+                    onRequestClose={() => setExpandedFileId(null)}
+                  >
+                    <View
+                      className="flex-1 justify-center items-center -bottom-12"
+                      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+                    >
+                      {dropdownStep === "summary" && (
+                        <View className="w-full h-full justify-center items-center px-4">
+                          <Summary
+                            summary={item.summary}
+                            fullHeight={true}
+                            setExpandedFileId={setExpandedFileId}
+                            item={item}
+                            navigation={navigation}
+                          />
                         </View>
-                      </>
-                    )}
-                  </View>
+                      )}
+                    </View>
+                  </Modal>
                 )}
               </View>
             )}

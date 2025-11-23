@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import API from "../../../config/api";
-import { getData } from "../utils/storage";
+import { getData } from "../../../utils/storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-export default function ChangePassword({ visible, onClose }) {
+export default function ChangePassword({ visible, onClose, setMessage }) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -37,13 +37,13 @@ export default function ChangePassword({ visible, onClose }) {
         newPassword,
       });
       if (response.data.success) {
-        Alert.alert("Success", "Password changed successfully.");
+        setMessage({ success: "Password changed successfully." });
         onClose && onClose();
       } else {
         setError(response.data.message || "Password change failed.");
       }
     } catch (err) {
-      setError(err.message);
+      setMessage({ error: err?.message || "Password change failed." });
     }
     setLoading(false);
   };

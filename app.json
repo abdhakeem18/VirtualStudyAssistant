@@ -1,10 +1,13 @@
 {
   "expo": {
+    "sdkVersion": "54.0.0",
     "userInterfaceStyle": "automatic",
     "scheme": "virtualstudyassistant",
     "web": {
       "bundler": "metro"
+    },
+    "android": {
+      "package": "com.abdulhakeem.virtualstudyassistant"
     }
   }
-
 }

@@ -13,7 +13,7 @@ export default function QuizHeader({ streak, maxStreak, current, total, onReatte
           {current + 1} / {total}
         </Text>
         <TouchableOpacity
-          className="bg-purple-900 px-3 py-2 rounded-md"
+          className="bg-purple-950 px-3 py-2 rounded-md"
           onPress={onReattempt}
         >
           <Text className="text-white text-xs">Reattempt</Text>

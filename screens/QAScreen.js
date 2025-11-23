@@ -18,95 +18,13 @@ import QuizResult from "./components/QA/QuizResult";
 import ReviewAnswers from "./components/QA/ReviewAnswers";
 import BestScoreGraph from "./components/QA/BestScoreGraph";
 import AttemptHistory from "./components/QA/AttemptHistory";
+import QuizPDFExport from "./components/QA/QuizPDFExport";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import API from "../config/api";
 
-const originalQA = [
-  {
-    id: 1,
-    question: "What is a variable?",
-    options: [
-      { text: "A number", explanation: "A number is a value, not a variable." },
-      {
-        text: "A symbol for a number we don’t know yet.",
-        explanation:
-          "Correct! A variable is a symbol for a number we don’t know yet.",
-      },
-      {
-        text: "A constant",
-        explanation: "A constant is a value that does not change.",
-      },
-      {
-        text: "A function",
-        explanation: "A function is a rule that relates inputs to outputs.",
-      },
-    ],
-    answer: 1,
-    explanation:
-      "A variable is a symbol for a number we don’t know yet. It can represent different values.",
-  },
-  {
-    id: 2,
-    question: "What is Newton’s First Law?",
-    options: [
-      {
-        text: "Force = mass x acceleration.",
-        explanation: "This is Newton’s Second Law.",
-      },
-      {
-        text: "An object in motion stays in motion unless acted upon by a force.",
-        explanation: "Correct! This is Newton’s First Law.",
-      },
-      {
-        text: "Energy cannot be created or destroyed.",
-        explanation: "This is the law of conservation of energy.",
-      },
-      {
-        text: "The rate of change of momentum is proportional to the applied force.",
-        explanation: "This is another way to state Newton’s Second Law.",
-      },
-    ],
-    answer: 1,
-    explanation:
-      "Newton’s First Law states that an object in motion stays in motion (and at rest stays at rest) unless acted upon by a force.",
-  },
-  {
-    id: 3,
-    question: "What is force?",
-    options: [
-      {
-        text: "Force = mass x acceleration.",
-        explanation: "Correct! This is the definition of force.",
-      },
-      {
-        text: "A symbol for a number we don’t know yet.",
-        explanation: "This is a variable.",
-      },
-      {
-        text: "A constant",
-        explanation: "A constant is a value that does not change.",
-      },
-      {
-        text: "A function",
-        explanation: "A function is a rule that relates inputs to outputs.",
-      },
-    ],
-    answer: 0,
-    explanation: "Force is defined as mass times acceleration (F = m × a).",
-  },
-];
-
-function shuffleArray(array) {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-export default function QAScreen({ navigation }) {
-  const [qaList, setQaList] = useState([]); 
+export default function QAScreen({ route, navigation }) {
+  const [originalQA, setOriginalQA] = useState([]);
+  const [qaList, setQaList] = useState([]);
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState(null);
   const [score, setScore] = useState(0);
@@ -115,26 +33,79 @@ export default function QAScreen({ navigation }) {
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [feedbackAnim] = useState(new Animated.Value(0));
-  const [lastCorrect, setLastCorrect] = useState(null); 
+  const [lastCorrect, setLastCorrect] = useState({
+    answer: null,
+    correct: false,
+  });
   const [reviewMode, setReviewMode] = useState(false);
   const [reviewAnswers, setReviewAnswers] = useState([]);
-  const [timer, setTimer] = useState(30); 
+  const [timer, setTimer] = useState(30);
   const timerRef = useRef();
   const [fiftyUsed, setFiftyUsed] = useState(false);
   const [hiddenOptions, setHiddenOptions] = useState([]);
-  const [history, setHistory] = useState([]); 
+  const [history, setHistory] = useState([]);
   const [quizStarted, setQuizStarted] = useState(false);
+  const [message, setMessage] = useState("");
+  const [recordID, setRecordID] = useState(null);
+  const [showPDFExport, setShowPDFExport] = useState(false);
+  const docId = route.params?.docId || 0;
 
   useEffect(() => {
-    AsyncStorage.getItem("qaHistory").then((data) => {
-      if (data) setHistory(JSON.parse(data));
-    });
+    fetchQuizData();
+    getAttemptHistory();
   }, []);
+
+  const shuffleArray = (array) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  const fetchQuizData = async () => {
+    setMessage("");
+
+    try {
+      const apiv = API("v1");
+      const response = await apiv.get(`/quiz/get/${docId}`);
+      if (response.data.success) {
+        setOriginalQA(response.data?.questions || []);
+      } else {
+        setMessage({
+          error: response.data.message || "Failed to fetch summary",
+        });
+      }
+    } catch (err) {
+      setMessage({ error: err.message || "Failed to fetch summary" });
+    }
+  };
+
+  const getAttemptHistory = async () => {
+    try {
+      const apiv = API("v1");
+      const response = await apiv.get(`/attempts/get/${docId}`);
+      if (response.data.success) {
+        const history = response.data?.history;
+        setRecordID(history?.id || null);
+        setHistory(
+          history?.quizHistory
+            ? typeof history?.quizHistory === "object"
+              ? history?.quizHistory
+              : JSON.parse(history?.quizHistory)
+            : []
+        );
+      }
+    } catch (err) {
+      setMessage({ error: err.message || "Failed to fetch history" });
+    }
+  };
 
   const handleStartQuiz = () => {
     const shuffled = shuffleArray(originalQA).map((q) => ({
       ...q,
-      options: shuffleArray(q.options),
+      options: shuffleArray(JSON.parse(q.options)),
     }));
     setQaList(shuffled);
     setCurrent(0);
@@ -148,7 +119,7 @@ export default function QAScreen({ navigation }) {
     setReviewMode(false);
     setReviewAnswers([]);
     setTimer(30);
-    setFiftyUsed(false);
+    setFiftyUsed({ status: false, attempts: 0 });
     setHiddenOptions([]);
     setQuizStarted(true);
     timerRef.current && clearInterval(timerRef.current);
@@ -158,17 +129,21 @@ export default function QAScreen({ navigation }) {
     );
   };
 
-  // Timer: auto next if time runs out
   useEffect(() => {
-    if (timer === 0 && !showResult && !reviewMode) {
-      handleSelect(null, true); 
-      setTimeout(() => handleNext(), 1000);
+    if (
+      timer === 0 &&
+      !showResult &&
+      !reviewMode &&
+      selected === null &&
+      quizStarted
+    ) {
+      handleSelect(null, true);
+      setTimeout(() => handleNext(), 1500);
     }
-  }, [timer]);
+  }, [timer, showResult, reviewMode, selected, quizStarted]);
 
-  // Animated feedback
-  const triggerFeedback = (isCorrect) => {
-    setLastCorrect(isCorrect);
+  const triggerFeedback = (isCorrect, correctIdx) => {
+    setLastCorrect({ answer: correctIdx, correct: isCorrect });
     feedbackAnim.setValue(0);
     Animated.timing(feedbackAnim, {
       toValue: 1,
@@ -180,28 +155,41 @@ export default function QAScreen({ navigation }) {
 
   // 50/50 logic
   const handleFiftyFifty = () => {
-    if (fiftyUsed) return;
+    if (fiftyUsed.attempts >= 3) {
+      setMessage({ error: "50/50 lifeline has been used up." });
+      return;
+    }
+
+    // Find the correct answer index in the shuffled options array
     const correctIdx = qaList[current].options.findIndex(
-      (o, i) => i === qaList[current].answer
+      (option) => parseInt(option.position) === parseInt(qaList[current].answer)
     );
+
+    // Get indices of wrong answers
     let wrongs = qaList[current].options
-      .map((o, i) => i)
-      .filter((i) => i !== correctIdx);
+      .map((option, index) => index)
+      .filter((index) => index !== correctIdx);
+
+    // Randomly select 2 wrong answers to hide
     wrongs = shuffleArray(wrongs).slice(0, 2);
     setHiddenOptions(wrongs);
-    setFiftyUsed(true);
+    setFiftyUsed({ status: true, attempts: (fiftyUsed?.attempts || 0) + 1 });
   };
 
   // Select answer
   const handleSelect = (idx, auto = false) => {
     if (selected !== null) return;
     setSelected(idx);
+
+    // Find the correct answer index in the shuffled options array
     const correctIdx = qaList[current].options.findIndex(
-      (o, i) => o.text === qaList[current].options[qaList[current].answer].text
+      (option) => parseInt(option.position) === parseInt(qaList[current].answer)
     );
+
     const isCorrect = idx === correctIdx;
-    triggerFeedback(isCorrect);
+    triggerFeedback(isCorrect, correctIdx);
     setShowExplanation(true);
+
     if (isCorrect) {
       setScore((s) => s + 1);
       setStreak((prev) => {
@@ -212,18 +200,20 @@ export default function QAScreen({ navigation }) {
     } else {
       setStreak(0);
     }
+
     // Save for review
     setReviewAnswers((arr) => [
       ...arr,
       {
         question: qaList[current].question,
         options: qaList[current].options,
-        answer: correctIdx,
-        selected: idx,
+        answer: correctIdx, // Store the correct option index
+        selected: idx, // Store the selected option index
         correct: isCorrect,
         explanations: qaList[current].options.map((o) => o.explanation),
       },
     ]);
+
     timerRef.current && clearInterval(timerRef.current);
   };
 
@@ -235,7 +225,10 @@ export default function QAScreen({ navigation }) {
       setShowExplanation(false);
       setLastCorrect(null);
       setTimer(30);
-      setFiftyUsed(false);
+      setFiftyUsed({
+        status: fiftyUsed.attempts >= 3 ? true : false,
+        attempts: fiftyUsed?.attempts || 0,
+      });
       setHiddenOptions([]);
       timerRef.current && clearInterval(timerRef.current);
       timerRef.current = setInterval(
@@ -243,46 +236,54 @@ export default function QAScreen({ navigation }) {
         1000
       );
     } else {
+      // Quiz completed - calculate final score
       setShowResult(true);
       timerRef.current && clearInterval(timerRef.current);
+
+      // Calculate final score as percentage
+      const finalScore = Math.round((score / qaList.length) * 100);
+
       const newHistory = [
         ...history,
         {
-          score: Math.round(
-            ((score +
-              (selected !== null &&
-              qaList[current].options.findIndex(
-                (o, i) =>
-                  o.text ===
-                  qaList[current].options[qaList[current].answer].text
-              ) === selected
-                ? 1
-                : 0)) /
-              qaList.length) *
-              100
-          ),
+          score: finalScore,
           date: new Date().toISOString(),
           streak: maxStreak,
-          reviewAnswers: reviewAnswers.concat([
-            {
-              question: qaList[current].question,
-              options: qaList[current].options,
-              answer: qaList[current].answer,
-              selected,
-              correct:
-                selected !== null &&
-                qaList[current].options.findIndex(
-                  (o, i) =>
-                    o.text ===
-                    qaList[current].options[qaList[current].answer].text
-                ) === selected,
-              explanations: qaList[current].options.map((o) => o.explanation),
-            },
-          ]),
+          reviewAnswers: [...reviewAnswers], // Use existing reviewAnswers array
         },
       ];
       setHistory(newHistory);
-      AsyncStorage.setItem("qaHistory", JSON.stringify(newHistory));
+      saveAttemptHistory(newHistory);
+    }
+  };
+
+  const saveAttemptHistory = async (newHistory) => {
+    try {
+      const apiv = API("v1");
+      let response;
+
+      if (!recordID) {
+        response = await apiv.post("/attempts/save", {
+          document_id: docId,
+          quiz_history: JSON.stringify(newHistory),
+          type: "quiz",
+        });
+      } else {
+        response = await apiv.put("/attempts/update/" + recordID, {
+          document_id: docId,
+          quiz_history: JSON.stringify(newHistory),
+          type: "quiz",
+        });
+      }
+
+      if (response.status === 200) {
+        await getAttemptHistory();
+        setMessage({ success: "History saved successfully" });
+      } else {
+        setMessage({ error: "Failed to save history" });
+      }
+    } catch (err) {
+      setMessage({ error: err.message || "Failed to save history" });
     }
   };
 
@@ -306,89 +307,56 @@ export default function QAScreen({ navigation }) {
     ],
   };
 
-
-  // Main render
-  if (reviewMode)
-    return (
-      <MainLayout>
+  return (
+    <MainLayout message={message} setMessage={setMessage}>
+      {reviewMode ? (
         <View className="flex-1 px-4 py-14 items-center">
           <ReviewAnswers
             reviewAnswers={reviewAnswers}
             onBack={() => setReviewMode(false)}
           />
         </View>
-      </MainLayout>
-    );
-
-  // Start screen
-  if (!quizStarted) {
-    return (
-      <MainLayout>
-        <ScrollView className="flex-1 px-4">
-          <View className="flex-row justify-between w-full mb-2 items-center">
-            <Text className="font-bold text-lg text-slate-700 mb-4">Q&A Exam</Text>
-            <TouchableOpacity
-              className="bg-purple-900 px-6 py-3 rounded-md mt-6 w-2/6"
-              onPress={() => {
-                Alert.alert(
-                  "Start Quiz",
-                  "Are you sure you want to start a new quiz attempt?",
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Start",
-                      style: "default",
-                      onPress: handleStartQuiz,
-                    },
-                  ]
-                );
-              }}
-            >
-              <Text className="text-white text-lg">Start Quiz</Text>
-            </TouchableOpacity>
-          </View>
-          <BestScoreGraph history={history} />
-          <AttemptHistory
-            history={history}
-            onReview={(reviewAnswers) => {
-              setReviewMode(true);
-              setReviewAnswers(reviewAnswers);
-            }}
-          />
-        </ScrollView>
-      </MainLayout>
-    );
-  }
-
-  return (
-    <MainLayout>
-      <View className="flex-1">
-        <QuizHeader
-          streak={streak}
-          maxStreak={maxStreak}
-          current={current}
-          total={qaList.length}
-          onReattempt={() => {
-            Alert.alert(
-              "Reattempt Quiz",
-              "Are you sure you want to restart this quiz attempt?",
-              [
-                { text: "Cancel", style: "cancel" },
-                { text: "Restart", style: "destructive", onPress: handleRestart },
-              ]
-            );
-          }}
-        />
-        <ScrollView className="flex px-4 pb-26">
-          {showResult ? (
-            <View className="w-full">
-              <QuizResult
-                score={score}
-                total={qaList.length}
-                maxStreak={maxStreak}
-                onRestart={handleRestart}
-                onReview={() => setReviewMode(true)}
-              />
+      ) : (
+        <>
+          {!quizStarted ? (
+            <ScrollView className="flex-1 px-4">
+              <View className="flex-row justify-between w-full mb-2 items-center">
+                <Text className="font-bold text-lg text-slate-700 mb-4">
+                  Q&A Exam
+                </Text>
+                <View className="flex-row gap-2">
+                  <TouchableOpacity
+                    className="bg-blue-950 px-4 py-3 rounded-md mt-6 flex-row items-center"
+                    onPress={() => setShowPDFExport(true)}
+                  >
+                    <MaterialCommunityIcons
+                      name="file-pdf-box"
+                      size={20}
+                      color="white"
+                    />
+                    <Text className="text-white text-sm ml-2">Export PDF</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="bg-purple-950 px-6 py-3 rounded-md mt-6"
+                    onPress={() => {
+                      Alert.alert(
+                        "Start Quiz",
+                        "Are you sure you want to start a new quiz attempt?",
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          {
+                            text: "Start",
+                            style: "default",
+                            onPress: handleStartQuiz,
+                          },
+                        ]
+                      );
+                    }}
+                  >
+                    <Text className="text-white text-lg">Start Quiz</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
               <BestScoreGraph history={history} />
               <AttemptHistory
                 history={history}
@@ -397,36 +365,92 @@ export default function QAScreen({ navigation }) {
                   setReviewAnswers(reviewAnswers);
                 }}
               />
-            </View>
-          ) : qaList.length > 0 ? (
-            <View className="w-full">
-              <QuizControls
-                onNext={handleNext}
-                isLast={current === qaList.length - 1}
-                selected={selected}
-                onFiftyFifty={handleFiftyFifty}
-                fiftyUsed={fiftyUsed}
-                timer={timer}
+            </ScrollView>
+          ) : (
+            <View className="flex-1">
+              <QuizHeader
+                streak={streak}
+                maxStreak={maxStreak}
+                current={current}
+                total={qaList.length}
+                onReattempt={() => {
+                  Alert.alert(
+                    "Reattempt Quiz",
+                    "Are you sure you want to restart this quiz attempt?",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Restart",
+                        style: "destructive",
+                        onPress: handleRestart,
+                      },
+                    ]
+                  );
+                }}
               />
-              <QuizQuestion
-                question={`Q${current + 1}: ${qaList[current].question}`}
-                options={qaList[current].options}
-                selected={selected}
-                hiddenOptions={hiddenOptions}
-                onSelect={handleSelect}
-              />
-              <QuizFeedback feedbackStyle={feedbackStyle} lastCorrect={lastCorrect} />
-              {showExplanation && (
-                <QuizExplanation
-                  options={qaList[current].options}
-                  answerIdx={qaList[current].answer}
-                  selectedIdx={selected}
-                />
-              )}
+              <ScrollView className="flex px-4 pb-26">
+                {showResult ? (
+                  <View className="w-full">
+                    <QuizResult
+                      score={score}
+                      total={qaList.length}
+                      maxStreak={maxStreak}
+                      onRestart={handleRestart}
+                      onReview={() => setReviewMode(true)}
+                    />
+                    <BestScoreGraph history={history} />
+                    <AttemptHistory
+                      history={history}
+                      onReview={(reviewAnswers) => {
+                        setReviewMode(true);
+                        setReviewAnswers(reviewAnswers);
+                      }}
+                    />
+                  </View>
+                ) : qaList.length > 0 ? (
+                  <View className="w-full">
+                    <QuizControls
+                      onNext={handleNext}
+                      isLast={current === qaList.length - 1}
+                      selected={selected}
+                      onFiftyFifty={handleFiftyFifty}
+                      fiftyUsed={fiftyUsed}
+                      timer={timer}
+                    />
+                    <QuizQuestion
+                      question={`Q${current + 1}: ${qaList[current].question}`}
+                      options={qaList[current].options}
+                      selected={selected}
+                      hiddenOptions={hiddenOptions}
+                      lastCorrect={lastCorrect?.answer}
+                      onSelect={handleSelect}
+                    />
+                    <QuizFeedback
+                      feedbackStyle={feedbackStyle}
+                      lastCorrect={lastCorrect?.correct}
+                    />
+                    {showExplanation && (
+                      <QuizExplanation
+                        options={qaList[current].options}
+                        answerIdx={lastCorrect?.answer}
+                        selectedIdx={selected}
+                      />
+                    )}
+                  </View>
+                ) : null}
+              </ScrollView>
             </View>
-          ) : null}
-        </ScrollView>
-      </View>
+          )}
+        </>
+      )}
+
+      {/* PDF Export Modal */}
+      <QuizPDFExport
+        docId={docId}
+        visible={showPDFExport}
+        onClose={() => setShowPDFExport(false)}
+        setMessage={setMessage}
+      />
     </MainLayout>
   );
 }

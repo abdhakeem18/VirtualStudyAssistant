@@ -8,15 +8,24 @@ import {
   Alert,
 } from "react-native";
 import ProfileLayout from "./components/layout/ProfileLayout";
-import { getData, setData } from "./components/utils/storage";
+import { getData, setData } from "../utils/storage";
 import { Picker } from "@react-native-picker/picker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ChangePassword from "./components/common/ChangePassword";
+import API from "../config/api";
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const currentYear = new Date().getFullYear();
+  const years = [];
+
+  for (let year = 1980; year <= currentYear; year++) {
+    years.push(year);
+  }
 
   useEffect(() => {
     async function fetchProfile() {
@@ -33,15 +42,34 @@ export default function ProfileScreen() {
   }, []);
 
   const handleSave = async () => {
-    await setData("user", { ...profile });
-    console.log("Profile data before save => ", profile);
+    try {
+      const apiv = API("v1");
+      const response = await apiv.put("/user/" + profile.id, {
+        username: profile.username,
+        email: profile.email,
+        phone: profile.phone,
+        birth: profile.birth,
+        gender: profile.gender,
+      });
 
-    Alert.alert("Profile Updated", "Your profile has been updated.");
-    setEditing(false);
+      if (response.data.success) {
+        await setData("user", { ...profile });
+        setMessage({ success: "Your profile has been updated." });
+        setEditing(false);
+      } else {
+        setMessage({
+          error: response.data.message || "Failed to update profile",
+        });
+      }
+    } catch (error) {
+      setMessage({
+        error: error.message || "Error updating profile on server.",
+      });
+    }
   };
 
   return (
-    <ProfileLayout>
+    <ProfileLayout message={message} setMessage={setMessage}>
       <View className="flex-1 px-6 py-8 pt-20 flex justify-center">
         {!changePasswordVisible ? (
           <>
@@ -105,9 +133,13 @@ export default function ProfileScreen() {
                   style={{ height: 50 }}
                 >
                   <Picker.Item label="Birth" value="" />
-                  <Picker.Item label="2000" value="2000" />
-                  <Picker.Item label="2001" value="2001" />
-                  <Picker.Item label="2002" value="2002" />
+                  {years.map((year) => (
+                    <Picker.Item
+                      key={year}
+                      label={year.toString()}
+                      value={year.toString()}
+                    />
+                  ))}
                 </Picker>
               </View>
               {/* Gender Picker */}
@@ -164,6 +196,7 @@ export default function ProfileScreen() {
           <ChangePassword
             visible={changePasswordVisible}
             onClose={() => setChangePasswordVisible(false)}
+            setMessage={setMessage}
           />
         )}
       </View>

@@ -5,18 +5,18 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Button,
   Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { MaterialCommunityIcons, FontAwesome6 } from "@expo/vector-icons";
 import Card from "./components/common/Card";
+import Button from "./components/common/Button";
 import MainLayout from "./components/layout/MainLayout";
 import { Picker } from "@react-native-picker/picker";
 import * as DocumentPicker from "expo-document-picker";
 import API from "../config/api";
-import { getData } from "./components/utils/storage";
+import { getData } from "../utils/storage";
 
 const HomeScreen = () => {
   const [AddMaterial, setAddMaterial] = useState(false);
@@ -29,7 +29,21 @@ const HomeScreen = () => {
   const [message, setMessage] = useState("");
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [waitingTime, setWaitingTime] = useState(0);
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [renameText, setRenameText] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [renameLoading, setRenameLoading] = useState(false);
   const navigation = useNavigation();
+
+  // Format time display
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const pickDocument = async () => {
     const result = await DocumentPicker.getDocumentAsync({
@@ -42,8 +56,29 @@ const HomeScreen = () => {
   };
 
   useEffect(() => {
-    fetchDocuments();
+    if (cards.length <= 0) {
+      fetchDocuments();
+    }
   }, []);
+
+  // Timer effect for loading countdown
+  // useEffect(() => {
+  //   let interval;
+  //   if (loading) {
+  //     setWaitingTime(0);
+  //     interval = setInterval(() => {
+  //       setWaitingTime((prevTime) => prevTime + 1);
+  //     }, 1000);
+  //   } else {
+  //     setWaitingTime(0);
+  //   }
+
+  //   return () => {
+  //     if (interval) {
+  //       clearInterval(interval);
+  //     }
+  //   };
+  // }, [loading]);
 
   const fetchDocuments = async () => {
     try {
@@ -53,19 +88,33 @@ const HomeScreen = () => {
       const apiv = API("v1");
       const response = await apiv.get("/document/get");
       if (response.data.success) {
-        const uniqueGroups = Array.from(
-          new Set(response.data.documents.map((g) => g.group))
-        );
-        setGroups(uniqueGroups);
+        // Create a Map to track unique groups by group name
+        const groupMap = new Map();
+        
+        response.data.documents.forEach((doc) => {
+          if (!groupMap.has(doc.group)) {
+            groupMap.set(doc.group, {
+              id: doc.id,
+              group: doc.group
+            });
+          }
+        });
+        
+        // Convert Map values to array
+        const uniqueGroups = Array.from(groupMap.values());
+        
+        // Extract just group names for the picker
+        const groupNames = uniqueGroups.map(item => item.group);
+
+        setGroups(groupNames);
         setCards(uniqueGroups);
       } else {
         setMessage({
-          error: response.data.message || "Password change failed.",
+          error: response.data.message || "Failed to fetch documents.",
         });
       }
     } catch (err) {
-      console.log('err => ', err);
-      setMessage({ error: err.message || "Network error. Please try again." });
+      setMessage({ error: err?.message || "Network error. Please try again." });
     }
   };
 
@@ -125,10 +174,89 @@ const HomeScreen = () => {
         setMessage({ error: response.data.message || "Upload failed" });
       }
     } catch (err) {
-      console.log("Upload error:", err);
       setMessage({ error: err.message || "Network error. Please try again." });
     }
     setLoading(false);
+  };
+
+  const deleteMaterial = async (cardObject) => {
+    Alert.alert(
+      "Delete Material",
+      `Are you sure you want to delete "${cardObject.group}" and all its contents? This action cannot be undone.`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setDeleteLoading(true);
+            setMessage("");
+            try {
+              const apiv = API("v1");
+              const response = await apiv.delete(`/document/group/${encodeURIComponent(cardObject.group)}`);
+              
+              if (response.data.success) {
+                await fetchDocuments();
+                setMessage({ success: "Material deleted successfully!" });
+                setShowOptionsModal(false);
+                setSelectedCard(null);
+              } else {
+                setMessage({ error: response.data.message || "Delete failed" });
+              }
+            } catch (err) {
+              setMessage({ error: err.message || "Network error. Please try again." });
+            }
+            setDeleteLoading(false);
+          },
+        },
+      ]
+    );
+  };
+
+  const renameMaterial = async () => {
+    if (!renameText.trim() || renameText.trim() === selectedCard.group) {
+      setMessage({ error: "Please enter a new name." });
+      return;
+    }
+
+    setRenameLoading(true);
+    setMessage("");
+    
+    try {
+      const apiv = API("v1");
+      const response = await apiv.put(`/document/group/rename`, {
+        oldName: selectedCard.group,
+        newName: renameText.trim()
+      });
+
+      if (response.data.success) {
+        await fetchDocuments();
+        setMessage({ success: "Material renamed successfully!" });
+        setShowRenameModal(false);
+        setShowOptionsModal(false);
+        setSelectedCard(null);
+        setRenameText("");
+      } else {
+        setMessage({ error: response.data.message || "Rename failed" });
+      }
+    } catch (err) {
+      setMessage({ error: err.message || "Network error. Please try again." });
+    }
+    setRenameLoading(false);
+  };
+
+  const openOptionsModal = (cardTitle) => {
+    setSelectedCard(cardTitle);
+    setShowOptionsModal(true);
+  };
+
+  const openRenameModal = () => {
+    setRenameText(selectedCard.group);
+    setShowRenameModal(true);
+    setShowOptionsModal(false);
   };
 
   return (
@@ -138,7 +266,7 @@ const HomeScreen = () => {
           onPress={() => {
             setAddMaterial(!AddMaterial);
           }}
-          className="bg-purple-900 px-4 py-3 rounded-xl shadow-md flex-row items-center space-x-2"
+          className="bg-purple-950 px-4 py-3 rounded-xl shadow-md flex-row items-center space-x-2"
         >
           <Text className="text-white font-semibold text-center">
             <FontAwesome6 name="plus" size={16} color="white" /> New Material
@@ -160,14 +288,26 @@ const HomeScreen = () => {
             {cards.length > 0 ? (
               <>
                 {cards.map((card, i) => (
-                  <TouchableOpacity
-                    key={i}
-                    onPress={() =>
-                      navigation.push("MaterialDetails", { title: card })
-                    }
-                  >
-                    <Card title={card} imageSource={getRandomImage(i)} />
-                  </TouchableOpacity>
+                  
+                  <View key={i} className="relative">
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.push("MaterialDetails", { title: card.group })
+                      }
+                    >
+                      <Card title={card.group} imageSource={getRandomImage(i)} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="absolute top-2 right-2 bg-white/80 rounded-full p-2"
+                      onPress={() => openOptionsModal(card)}
+                    >
+                      <MaterialCommunityIcons
+                        name="dots-vertical"
+                        size={20}
+                        color="#7c3aed"
+                      />
+                    </TouchableOpacity>
+                  </View>
                 ))}
               </>
             ) : (
@@ -190,10 +330,28 @@ const HomeScreen = () => {
         className={`absolute z-20 w-full h-full top-0 left-0 bg-transparent shadow-lg ${AddMaterial ? "" : "hidden"}`}
       >
         <View className=" bg-black opacity-80 w-full h-full"></View>
-        <View className="flex items-center justify-center w-11/12 h-auto z-10 absolute bg-white m-5 top-1/4 px-2 py-10">
+        <View
+          className={`flex items-center justify-center w-11/12 h-auto z-10 absolute m-5 top-1/4 px-2 ${loading ? "py-1" : "py-10 bg-white"}`}
+        >
           {loading ? (
-            <View className="absolute inset-0 h-full flex items-center justify-center bg-black bg-opacity-50 ">
-              <Text className="text-white">Generating your material...</Text>
+            <View className="w-full h-full flex items-center justify-center bg-black opacity-85 py-8">
+              <Text className="text-white font-bold text-xl mb-4">
+                Generating your material...
+              </Text>
+              <Text className="text-white text-lg mb-2">
+                Please wait while we process your document
+              </Text>
+              <View className="flex flex-row items-center">
+                <Text className="text-white text-base">
+                  Time elapsed: 
+                </Text>
+                <Text className="text-yellow-300 font-bold text-lg ml-2">
+                  {formatTime(waitingTime)}
+                </Text>
+              </View>
+              <Text className="text-gray-300 text-sm mt-4 text-center px-4">
+                This may take a few minutes depending on document size
+              </Text>
             </View>
           ) : (
             <>
@@ -207,7 +365,7 @@ const HomeScreen = () => {
                 New Material
               </Text>
 
-              {/* File upload field */}
+              {/*** File upload field ***/}
 
               <View className="flex flex-col items-center mb-4 bg-slate-200 pt-10 p-4 w-10/12">
                 <View className="w-50 h-50 absolute top-4 right-4">
@@ -291,12 +449,18 @@ const HomeScreen = () => {
                             placeholder="Enter group name"
                           />
                           <TouchableOpacity
-                            className="bg-purple-900 px-4 py-2 rounded-md w-2/12 items-center h-12"
+                            className="bg-purple-950 px-4 py-2 rounded-md w-2/12 items-center h-12"
                             onPress={() => {
                               if (newGroup.trim()) {
-                                setGroups([...groups, newGroup.trim()]);
-                                setSelectedGroup(newGroup.trim());
-                                setShowAddGroup(false);
+                                const trimmedGroup = newGroup.trim();
+                                if (!groups.includes(trimmedGroup)) {
+                                  setGroups([...groups, trimmedGroup]);
+                                  setSelectedGroup(trimmedGroup);
+                                  setShowAddGroup(false);
+                                  setNewGroup("");
+                                } else {
+                                  setMessage({ error: "Group already exists!" });
+                                }
                               }
                             }}
                           >
@@ -310,18 +474,117 @@ const HomeScreen = () => {
                       </View>
                     )}
                   </View>
-                  <TouchableOpacity
-                    className="bg-purple-900 px-4 py-2 w-4/12 rounded-md mt-3"
-                    onPress={saveMaterial}
-                  >
-                    <Text className="text-white text-center">Save</Text>
-                  </TouchableOpacity>
+                  <Button
+                    name="Save"
+                    callback={saveMaterial}
+                    loading={loading}
+                    btnCls="bg-purple-950 px-4 py-2 w-4/12 rounded-md mt-3"
+                    textCls="text-white text-center"
+                  />
                 </>
               )}
             </>
           )}
         </View>
       </View>
+
+      {/*** Options Modal ***/}
+      {showOptionsModal && (
+        <View className="absolute z-30 w-full h-full top-0 left-0 bg-transparent">
+          <View className="bg-black/50 w-full h-full"></View>
+          <View className="flex items-center justify-center w-4/5 h-auto z-10 absolute top-1/2 left-1/2 bg-white rounded-lg p-6" style={{ transform: [{ translateX: -150 }, { translateY: -100 }] }}>
+            <TouchableOpacity
+              onPress={() => {
+                setShowOptionsModal(false);
+                setSelectedCard(null);
+              }}
+              className="absolute top-4 right-4"
+            >
+              <MaterialCommunityIcons name="close" size={24} color="black" />
+            </TouchableOpacity>
+            
+            <Text className="text-black font-bold mb-6 text-xl text-center">
+              Material Options
+            </Text>
+            <Text className="text-gray-600 mb-6 text-center">
+              "{selectedCard?.group}"
+            </Text>
+
+            <View className="w-full space-y-3 flex-1">
+              <Button
+                name="Rename Material"
+                callback={openRenameModal}
+                btnCls="bg-purple-950 px-4 py-3 rounded-md w-full"
+                textCls="text-white text-center font-semibold"
+              />
+              
+              <Button
+                name="Delete Material"
+                callback={() => deleteMaterial(selectedCard)}
+                loading={deleteLoading}
+                btnCls="bg-red-600 px-4 py-3 rounded-md w-full mt-3"
+                textCls="text-white text-center font-semibold"
+              />
+              
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/*** Rename Modal ***/}
+      {showRenameModal && (
+        <View className="absolute z-30 w-full h-full top-0 left-0 bg-transparent">
+          <View className="bg-black/50 w-full h-full"></View>
+          <View className="flex items-center justify-center w-4/5 h-auto z-10 absolute top-1/2 left-1/2 bg-white rounded-lg p-6" style={{ transform: [{ translateX: -150 }, { translateY: -100 }] }}>
+            <TouchableOpacity
+              onPress={() => {
+                setShowRenameModal(false);
+                setRenameText("");
+                setShowOptionsModal(true);
+              }}
+              className="absolute top-4 right-4"
+            >
+              <MaterialCommunityIcons name="close" size={24} color="black" />
+            </TouchableOpacity>
+            
+            <Text className="text-black font-bold mb-6 text-xl text-center">
+              Rename Material
+            </Text>
+
+            <View className="w-full mb-6">
+              <Text className="mb-2 text-gray-600">New Name:</Text>
+              <TextInput
+                className="border border-gray-300 rounded-md px-3 py-3 w-full"
+                value={renameText}
+                onChangeText={setRenameText}
+                placeholder="Enter new name"
+                autoFocus={true}
+              />
+            </View>
+
+            <View className="w-full space-y-3">
+              <Button
+                name="Save Changes"
+                callback={renameMaterial}
+                loading={renameLoading}
+                btnCls="bg-purple-950 px-4 py-3 rounded-md w-full"
+                textCls="text-white text-center font-semibold"
+              />
+              
+              <Button
+                name="Cancel"
+                callback={() => {
+                  setShowRenameModal(false);
+                  setRenameText("");
+                  setShowOptionsModal(true);
+                }}
+                btnCls="bg-gray-300 px-4 py-3 rounded-md w-full mt-3"
+                textCls="text-gray-700 text-center font-semibold"
+              />
+            </View>
+          </View>
+        </View>
+      )}
     </MainLayout>
   );
 };
